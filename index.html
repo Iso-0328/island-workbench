@@ -440,11 +440,30 @@ async function gistGet(){
     return {data:d};
   }catch(e){return {error:'连不上 GitHub（'+((e&&e.message)||e)+'）。网络不稳定可在设置里填代理 API 地址'}}
 }
+/* 上云数据必须剔除 Token：GitHub 对秘密 Gist 也做 secret scanning，扫到 ghp_ 令牌立即吊销
+   —— 以前每次同步都把 token 一起存上云，等于「同步成功的那一秒令牌就被判死刑」（2026-09-15 实锤修复） */
+function cloudSafe(o){
+  const c=Object.assign({},o);
+  c.settings=Object.assign({},(o&&o.settings)||{});
+  c.settings.github=Object.assign({},c.settings.github||{});
+  c.settings.github.token='';
+  return c;
+}
+/* 云端数据永远不含 token（cloudSafe 剔过）：写进 S 前从本机 localStorage 找回，避免被空值盖掉 */
+function fillLocalToken(d){
+  try{
+    if(d&&d.settings&&d.settings.github&&!d.settings.github.token){
+      const l=localCopy(),lt=l&&l.settings&&l.settings.github&&l.settings.github.token;
+      if(lt)d.settings.github.token=lt;
+    }
+  }catch(e){}
+  return d;
+}
 async function gistPatch(obj){
   const c=ghCfg();
   try{
     const r=await fetch(c.api+'/gists/'+encodeURIComponent(c.gistId),{method:'PATCH',headers:ghHeaders({'Content-Type':'application/json'}),
-      body:JSON.stringify({files:{"data.json":{content:JSON.stringify(obj)}}})});
+      body:JSON.stringify({files:{"data.json":{content:JSON.stringify(cloudSafe(obj))}}})});
     if(r.status===401)return {error:'令牌无效或没有 gist 权限（401）'};
     if(!r.ok)return {error:'GitHub 返回 HTTP '+r.status};
     return {ok:true};
@@ -454,7 +473,7 @@ async function gistCreate(obj){
   const c=ghCfg();
   try{
     const r=await fetch(c.api+'/gists',{method:'POST',headers:ghHeaders({'Content-Type':'application/json'}),
-      body:JSON.stringify({description:'小岛的工作台 · 数据自动同步（每次保存自动留历史版本）',public:false,files:{"data.json":{content:JSON.stringify(obj)}}})});
+      body:JSON.stringify({description:'小岛的工作台 · 数据自动同步（每次保存自动留历史版本）',public:false,files:{"data.json":{content:JSON.stringify(cloudSafe(obj))}}})});
     if(!r.ok)return {error:'创建 Gist 失败：HTTP '+r.status};
     const j=await r.json();
     if(!j||!j.id)return {error:'创建 Gist 失败：响应里没有 id'};
@@ -476,10 +495,10 @@ async function initCloud(){
       if((local.updatedAt||0)>(cd.updatedAt||0)){
         S=Object.assign(defaultState(),local);S._rev=REV;persist();need=true;
         syncNote='已把本机数据合并到云端';
-      }else{stashLocal('初始化时以云端为准');S=Object.assign(defaultState(),cd||{});syncNote='已连上云端'}
-    }else if(cHas){S=Object.assign(defaultState(),cd||{});syncNote='已连上云端'}
+      }else{stashLocal('初始化时以云端为准');S=fillLocalToken(Object.assign(defaultState(),cd||{}));syncNote='已连上云端'}
+    }else if(cHas){S=fillLocalToken(Object.assign(defaultState(),cd||{}));syncNote='已连上云端'}
     else if(lcHas){S=Object.assign(defaultState(),local);S._rev=REV;persist();need=true;syncNote='已把本机数据写入云端'}
-    else{S=Object.assign(defaultState(),cd||{});S._rev=REV;syncNote='云端还没有数据'}
+    else{S=fillLocalToken(Object.assign(defaultState(),cd||{}));S._rev=REV;syncNote='云端还没有数据'}
     return {ok:true,needPush:need};
   }catch(e){return {ok:false,error:(e&&e.message)||'未知错误'}}
 }
@@ -564,7 +583,7 @@ function handleConflict(d){
     '拿不准就点取消，然后到「设置 → 数据与同步」导出备份再处理。'
   );
   if(useMine){pushNow(true)}
-  else{stashLocal('冲突时选择载入最新');REV=d.rev||0;S=Object.assign(defaultState(),d.data||{});S._rev=REV;persist();render();setSyncLabel('已载入最新数据');syncNote='已载入最新数据'}
+  else{stashLocal('冲突时选择载入最新');REV=d.rev||0;S=fillLocalToken(Object.assign(defaultState(),d.data||{}));S._rev=REV;persist();render();setSyncLabel('已载入最新数据');syncNote='已载入最新数据'}
 }
 /* 轮询：另一台设备改动后，这边自动跟上（server 走本机服务；cloud 走 Gist，ETag 条件请求没变化时几乎零成本） */
 async function syncPull(){
@@ -580,7 +599,7 @@ async function syncPull(){
       if(rv===REV||DIRTY)return;   // 没变化 / 本机还有没推上去的改动
       if((d.updatedAt||0)<(S.updatedAt||0))return; // 云端比本机旧（多半是刚推完还没等到），别拿旧的盖新的
       stashLocal('自动同步云端改动前');
-      REV=rv;S=Object.assign(defaultState(),d);S._rev=REV;persist();render();
+      REV=rv;S=fillLocalToken(Object.assign(defaultState(),d));S._rev=REV;persist();render();
       setSyncLabel('已同步最新数据');syncNote='已同步最新数据';toast('已同步另一台设备的改动');
     }catch(e){}
     return;
