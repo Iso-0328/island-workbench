@@ -497,7 +497,12 @@ function ghHistory(){
 function saveGitHub(){
   const token=$('#gh-token').value.trim(),gistId=$('#gh-gist').value.trim();
   const api=$('#gh-api').value.trim()||'https://api.github.com';
-  const enabled=$('#gh-on')&&$('#gh-on').checked;
+  let enabled=$('#gh-on')&&$('#gh-on').checked;
+  if(!enabled&&(token||gistId)){ // 按钮叫「保存并启用」，填了 Token 却没勾开关——多半是没看见复选框，问一声别静默
+    if(confirm('「启用云同步」开关还没勾上（在 Token 输入框上方那一行）。\n\n点「确定」＝帮你勾上并连接云端\n点「取消」＝仅保存配置，保持关闭')){
+      enabled=true;const cb=$('#gh-on');if(cb)cb.checked=true;
+    }
+  }
   if(enabled&&!token){alert('启用云同步需要先填 Personal Access Token（github.com/settings/tokens 生成，勾选 gist 权限）');return}
   S.settings.github={token:token,gistId:gistId,api:api,enabled:enabled};
   persist();
