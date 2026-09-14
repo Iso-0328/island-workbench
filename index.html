@@ -805,10 +805,11 @@ function splitSubsW(it,hoursByDs){
   });
   return out;
 }
-/* 每日建议学习量：把每个任务的剩余工时装进「每日学习时长」额度里。
-   排法：截止越近越先挑日子；每个任务从开始日往后扫，哪天额度还有空位就装一点；
-   当天装满了就跳过（等价于把任务往后挪），截止远的任务自然落进前面几周的富余日子。
-   窗口快到截止还装不下时才允许溢出平摊，优先保证不误事。 */
+/* 每日建议学习量（串行传送带）：不是所有任务都从学期初摊到期末——那样每天每样碰一点，
+   繁琐又不符实际。排法按「轻重缓急」：截止越近越急的排前面；一条时间游标从今天出发，
+   最急的任务先「上车」，连续占日子集中做（每天不超当日额度、单任务单日≤4h），做完下车；
+   游标停在那一天，当天没用完的额度正好给下一个任务开个头（穿插），下一个任务接着上车。
+   轮到某任务时若窗口已装不下（前面占得太久），才溢出平摊保截止；每周小测等 rpt 固定日子照常占位。 */
 function dayPlan(){
   const map={};const td=todayStr();
   const B=S.settings.studyBudget||{};
@@ -817,16 +818,25 @@ function dayPlan(){
   const items=allPlanItems().filter(it=>it.dueDate&&!it.done&&it.estHours*(1-(it.progress||0)/100)>0)
     .sort((a,b)=>a.dueDate===b.dueDate?(b.estHours-a.estHours):(a.dueDate<b.dueDate?-1:1));
   const perTask={};   // ref -> { 日期: 当天分到的工时 }
-  items.forEach(it=>{
+  let cur=td;         // 传送带游标：上一个任务最后干活的日子，从这里接下一个
+  items.forEach(it=>{                             // 先把每周小测等 rpt 固定日程钉死在发生日（小测那天就是那天，不能挪）
+    if(!it.rpt)return;
     const remain=it.estHours*(1-(it.progress||0)/100);
-    let start=(it.startDate&&it.startDate>td)?it.startDate:td;
-    if(daysBetween(start,it.dueDate)<0)start=it.dueDate; // 已过期：压到截止日
+    perTask[it.ref]={[it.dueDate]:remain};
+    used[it.dueDate]=(used[it.dueDate]||0)+remain;
+  });
+  items.forEach(it=>{
+    if(it.rpt)return;
+    const remain=it.estHours*(1-(it.progress||0)/100);
+    let start=cur;
+    if(it.startDate&&it.startDate>start)start=it.startDate; // 任务说好了从这天才开始，就那天再上车
+    if(daysBetween(start,it.dueDate)<0)start=it.dueDate;    // 游标已越过截止（或已过期）：压到截止日单日处理
     const dsList=[];
     for(let ds=start;ds<=it.dueDate;ds=d2s(addDays(s2d(ds),1)))dsList.push(ds);
     if(!dsList.length)return;
     const hrs={};
     let rem=Math.round(remain*100)/100;
-    for(const ds of dsList){                     // 第一轮：受每日额度约束，从前往后装
+    for(const ds of dsList){                     // 第一轮：从游标日起连续装，受每日额度约束
       if(rem<=0.001)break;
       const cap=(budgetOf(ds)||0)-(used[ds]||0);
       if(cap<=0.001)continue;
@@ -842,6 +852,8 @@ function dayPlan(){
         hrs[ds]=(hrs[ds]||0)+add; used[ds]=(used[ds]||0)+add;
       });
     }
+    const last=Object.keys(hrs).sort().pop();
+    if(last&&last>cur)cur=last;                  // 游标停在该任务最后干活日（只进不退）
     perTask[it.ref]=hrs;
   });
   items.forEach(it=>{
