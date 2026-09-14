@@ -305,6 +305,7 @@ function defaultState(){return{
   courses:[],tasks:[],todos:{},projects:[],income:[],
   dismissed:{}, // { '2026-09-14': ['task:xxx', ...] } 当天被手动删掉的自动建议，当天不再自动加回
   settings:{ai:{endpoint:'https://api.deepseek.com/chat/completions',key:'',model:'deepseek-flash'},workPerDay:3,totalGoal:10000,
+    studyBudget:{0:2,1:4.5,2:2,3:2,4:2,5:4,6:5}, // 每日学习时长（小时），键 0=周日…6=周六；排期器把任务装进这些额度
     github:{token:'',gistId:'',api:'https://api.github.com',enabled:false}}, // 云同步：数据存 GitHub 秘密 Gist，跨互联网多设备 + 历史版本
   _rev:0,updatedAt:0
 }}
@@ -670,6 +671,7 @@ async function init(){
   if(!S.settings||typeof S.settings.workPerDay!=='number')S.settings=Object.assign(defaultState().settings,S.settings||{});
   if(!S.settings.ai)S.settings.ai=defaultState().settings.ai;
   if(!S.settings.github)S.settings.github=defaultState().settings.github; // 云同步配置补全（老数据没有这个字段）
+  if(!S.settings.studyBudget||typeof S.settings.studyBudget!=='object')S.settings.studyBudget=defaultState().settings.studyBudget; // 每日学习时长补全（老数据没有这个字段）
   if(!S.settings.totalGoal)S.settings.totalGoal=10000;
   S._rev=REV;
   if(needPush)save(); else persist(); // 无改动时不空推，免得版本号乱跳
@@ -743,13 +745,16 @@ function allPlanItems(){
   S.tasks.forEach(t=>{
     if(t.done||!isRepeatTask(t))return;
     const wds=WEEKDAY_NAMES[t.repeat.weekday];
-    repeatDates(t).forEach(ds=>{
+    const dates=repeatDates(t);
+    // t.estHours 是整学期做这件事的总工时：均摊到每次发生（如 20h/16 周 ≈ 每次 1.25h），而不是整个算给某一天
+    const per=Math.max(0.5,Math.round(((t.estHours||0.5)/Math.max(1,dates.length))*2)/2);
+    dates.forEach(ds=>{
       items.push({ref:'rpt:'+t.id+':'+ds,kind:'study',id:t.id,stage:'',rpt:true,name:t.name,sub:courseName(t.courseId),color:courseColor(t.courseId),
-        dueDate:ds,estHours:t.estHours||0.5,done:false,progress:0,startDate:ds,subs:[]});
+        dueDate:ds,estHours:per,done:false,progress:0,startDate:ds,subs:[]});
       const pd=d2s(addDays(s2d(ds),-1));   // 前一天：准备提醒
       if(pd>=S.semester.start)items.push({ref:'rpt:'+t.id+':'+ds+':prep',kind:'study',id:t.id,stage:'',rpt:true,prep:true,
         name:'准备：'+t.name,sub:courseName(t.courseId),color:courseColor(t.courseId),
-        dueDate:pd,estHours:t.estHours||0.5,done:false,progress:0,startDate:pd,subs:[]});
+        dueDate:pd,estHours:per,done:false,progress:0,startDate:pd,subs:[]});
     });
   });
   (S.projects||[]).forEach(p=>{
@@ -783,30 +788,70 @@ function splitSubs(it,start,endDs){
   }
   return out;
 }
-/* 每日建议学习量（未完成的条目，从今天/开始日摊到截止日；带当天该做的子任务） */
+/* 变体：按「每天分到的工时」权重摊子任务条数（hoursByDs: {日期: 小时}），总量守恒 */
+function splitSubsW(it,hoursByDs){
+  const pend=(it.subs||[]).filter(s=>!s.done);
+  const out={};
+  if(!pend.length)return out;
+  const dss=Object.keys(hoursByDs).filter(ds=>hoursByDs[ds]>0).sort();
+  const tot=dss.reduce((s,ds)=>s+hoursByDs[ds],0);
+  if(!dss.length||tot<=0)return out;
+  let prevCut=0,acc=0;
+  dss.forEach((ds,i)=>{
+    acc+=hoursByDs[ds];
+    const cut=(i===dss.length-1)?pend.length:Math.min(pend.length,Math.ceil(pend.length*acc/tot)); // ceil：当天有工时且还有剩子任务时至少给 1 条
+    out[ds]=pend.slice(prevCut,cut);
+    prevCut=cut;
+  });
+  return out;
+}
+/* 每日建议学习量：把每个任务的剩余工时装进「每日学习时长」额度里。
+   排法：截止越近越先挑日子；每个任务从开始日往后扫，哪天额度还有空位就装一点；
+   当天装满了就跳过（等价于把任务往后挪），截止远的任务自然落进前面几周的富余日子。
+   窗口快到截止还装不下时才允许溢出平摊，优先保证不误事。 */
 function dayPlan(){
   const map={};const td=todayStr();
-  let limit=S.semester.end;
-  allPlanItems().forEach(it=>{if(it.dueDate>limit)limit=it.dueDate});
-  allPlanItems().forEach(it=>{
-    if(it.done)return;
-    let remain=it.estHours*(1-(it.progress||0)/100);
-    if(remain<=0)return;
-    if(!it.dueDate)return;
+  const B=S.settings.studyBudget||{};
+  const budgetOf=ds=>{const v=B[s2d(ds).getDay()];return(typeof v==='number'&&v>=0)?v:3}; // 没配置时按每天 3h 兜底
+  const used={};
+  const items=allPlanItems().filter(it=>it.dueDate&&!it.done&&it.estHours*(1-(it.progress||0)/100)>0)
+    .sort((a,b)=>a.dueDate===b.dueDate?(b.estHours-a.estHours):(a.dueDate<b.dueDate?-1:1));
+  const perTask={};   // ref -> { 日期: 当天分到的工时 }
+  items.forEach(it=>{
+    const remain=it.estHours*(1-(it.progress||0)/100);
     let start=(it.startDate&&it.startDate>td)?it.startDate:td;
     if(daysBetween(start,it.dueDate)<0)start=it.dueDate; // 已过期：压到截止日
-    const n=Math.max(1,daysBetween(start,it.dueDate)+1);
-    let per=Math.round(remain/n*2)/2;
-    if(per<0.5)per=0.5;
-    // 子任务摊到每一天：没子任务时 subs 为空数组，待办仍按任务标题显示
-    const subMap=splitSubs(it,start,it.dueDate);
-    for(let i=0;i<n;i++){
-      const ds=d2s(addDays(s2d(start),i));
-      if(ds>limit)break;
-      const subs=(subMap[ds]||[]).map(s=>({id:s.id,name:s.name}));
-      (map[ds]=map[ds]||[]).push({ref:it.ref,kind:it.kind,hours:per,name:it.name,color:it.color,sub:it.sub,stage:it.stage,projectName:it.projectName||'',
-        subs,subTotal:(it.subs||[]).length});
+    const dsList=[];
+    for(let ds=start;ds<=it.dueDate;ds=d2s(addDays(s2d(ds),1)))dsList.push(ds);
+    if(!dsList.length)return;
+    const hrs={};
+    let rem=Math.round(remain*100)/100;
+    for(const ds of dsList){                     // 第一轮：受每日额度约束，从前往后装
+      if(rem<=0.001)break;
+      const cap=(budgetOf(ds)||0)-(used[ds]||0);
+      if(cap<=0.001)continue;
+      const q=Math.max(0.25,Math.round(Math.min(rem,cap,4)*4)/4); // 单任务单日最多 4h，步进 0.25h
+      const real=Math.min(rem,q);
+      hrs[ds]=(hrs[ds]||0)+real; used[ds]=(used[ds]||0)+real;
+      rem=Math.round((rem-real)*100)/100;
     }
+    if(rem>0.001){                               // 第二轮：窗口不够装 → 溢出平摊，保截止
+      const extra=rem/dsList.length;
+      dsList.forEach((ds,i)=>{
+        const add=(i===dsList.length-1)?(rem-extra*(dsList.length-1)):extra;
+        hrs[ds]=(hrs[ds]||0)+add; used[ds]=(used[ds]||0)+add;
+      });
+    }
+    perTask[it.ref]=hrs;
+  });
+  items.forEach(it=>{
+    const hrs=perTask[it.ref]||{};
+    const subMap=splitSubsW(it,hrs);   // 子任务按每天工时比例摊；没子任务时待办仍按任务标题显示
+    Object.keys(hrs).forEach(ds=>{
+      const subs=(subMap[ds]||[]).map(s=>({id:s.id,name:s.name}));
+      (map[ds]=map[ds]||[]).push({ref:it.ref,kind:it.kind,hours:hrs[ds],name:it.name,color:it.color,sub:it.sub,stage:it.stage,projectName:it.projectName||'',
+        subs,subTotal:(it.subs||[]).length});
+    });
   });
   return map;
 }
@@ -1887,6 +1932,14 @@ function renderSet(){
       <div style="margin-top:14px"><button class="btn" onclick="saveSem()">保存学期设置</button></div>
     </div>
     <div class="card">
+      <h2 style="margin-top:0"><i class="ic" data-ic="moon"></i> 每日学习时长（小时）</h2>
+      <div class="muted" style="margin-bottom:10px">每天打算花多少时间学自己的任务（不含上课，也不含小红书工作）。排期器会把任务装进这些额度里：某天装满了就把任务挪到别的日子，一天再忙也不会被排超；快到截止还装不下时才允许稍微加一点，保证不误事。填 0 = 那天不排学习任务。</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        ${[['1','周一'],['2','周二'],['3','周三'],['4','周四'],['5','周五'],['6','周六'],['0','周日']].map(([k,n])=>{const v=(S.settings.studyBudget||{})[k];return`<div style="flex:1;min-width:64px"><label style="text-align:center">${n}</label><input type="number" step="0.5" min="0" max="16" id="sb-${k}" value="${typeof v==='number'?v:''}" style="text-align:center"></div>`}).join('')}
+      </div>
+      <div style="margin-top:14px"><button class="btn" onclick="saveBudget()">保存每日时长</button></div>
+    </div>
+    <div class="card">
       <h2 style="margin-top:0"><i class="ic" data-ic="wand"></i> AI 解析设置（OpenAI 兼容接口）</h2>
       <label>接口地址（chat/completions 完整 URL）</label><input id="ai-ep" value="${esc(a.endpoint)}" placeholder="https://api.deepseek.com/chat/completions">
       <label>API Key</label><input id="ai-key" type="password" value="${esc(a.key)}" placeholder="sk-...">
@@ -1953,6 +2006,11 @@ function saveSem(){
   save();render();alert('已保存');
 }
 function saveAI(){S.settings.ai={endpoint:$('#ai-ep').value.trim(),key:$('#ai-key').value.trim(),model:$('#ai-model').value.trim()};save();alert('已保存')}
+function saveBudget(){
+  const b={};
+  for(let i=0;i<7;i++){const v=parseFloat($('#sb-'+i).value);b[i]=(!isNaN(v)&&v>0)?Math.min(16,v):0;}
+  S.settings.studyBudget=b;save();render();alert('已保存每日学习时长');
+}
 async function testAI(){
   const out=document.getElementById('ai-test');
   const ep=$('#ai-ep').value.trim(),key=$('#ai-key').value.trim(),model=$('#ai-model').value.trim();
