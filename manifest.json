@@ -1,0 +1,13 @@
+{
+  "name": "小岛的工作台",
+  "short_name": "小岛工作台",
+  "description": "粉色系个人学期工作台：课程任务、规划、小红书工作与进度可视化",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#fdf4f8",
+  "theme_color": "#e879a6",
+  "icons": [
+    { "src": "icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

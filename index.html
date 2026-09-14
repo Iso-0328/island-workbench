@@ -1,0 +1,2979 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小岛的工作台 · My Pastel Semester</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="小岛的工作台">
+<meta name="theme-color" content="#e879a6">
+<style>
+:root{
+  --bg:#fdf1f6; --panel:linear-gradient(145deg,#fff8fb,#ffe9f3); --ink:#6b4a5a; --ink2:#b08fa0; --line:#f6dce7;
+  --accent:#e879a6; --accent2:#f2a5c4; --accent-deep:#d15c8f;
+  --ok:#d15c8f; --warn:#dfa17c; --danger:#d96d85; --study:#9d8cd2;
+  --r:18px;
+  --neu:8px 8px 18px rgba(214,138,172,.18),-8px -8px 18px rgba(255,255,255,.95);
+  --neu-sm:4px 4px 10px rgba(214,138,172,.16),-4px -4px 10px rgba(255,255,255,.9);
+  --neu-in:inset 3px 3px 6px rgba(214,138,172,.14),inset -3px -3px 6px rgba(255,255,255,.9);
+  --shadow:var(--neu);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:"PingFang SC","HarmonyOS Sans SC","Microsoft YaHei",system-ui,sans-serif;
+  color:var(--ink);font-size:14px;line-height:1.6;
+  background-color:var(--bg);
+  background-image:url('bg.png');
+  background-size:cover;background-position:center;background-attachment:fixed;background-repeat:no-repeat;
+}
+button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select,textarea{font:inherit;color:var(--ink);background:#fff3f8;border:1px solid #f9e2ec;border-radius:12px;padding:8px 12px;width:100%;outline:none;transition:box-shadow .18s;box-shadow:var(--neu-in)}
+input:focus,select:focus,textarea:focus{box-shadow:var(--neu-in),0 0 0 3px rgba(232,121,166,.16)}
+label{display:block;font-size:12px;color:var(--ink2);margin:10px 0 4px}
+header{background:rgba(255,242,249,.72);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.65);box-shadow:0 4px 18px rgba(214,138,172,.12);padding:13px 28px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;position:sticky;top:0;z-index:50}
+.logo{font-size:18px;font-weight:700;display:flex;align-items:center;gap:9px;letter-spacing:.5px}
+.logo .ic{width:22px;height:22px;color:var(--accent)}
+.logo small{font-size:10.5px;font-weight:400;color:var(--ink2);letter-spacing:1.5px;margin-top:3px}
+.seminfo{font-size:12px;color:var(--ink2)}
+nav{display:flex;gap:5px;margin-left:auto;flex-wrap:wrap}
+nav button{padding:7px 15px;border-radius:999px;color:var(--ink2);font-weight:500;transition:background .18s,color .18s;display:inline-flex;align-items:center;gap:6px}
+nav button .ic{width:15px;height:15px}
+nav button:hover{background:rgba(255,255,255,.75);color:var(--accent-deep)}
+nav button.on{background:linear-gradient(145deg,#f28ab4,#e0699c);color:#fff;box-shadow:4px 4px 10px rgba(214,138,172,.35),-3px -3px 8px rgba(255,255,255,.9)}
+main{max-width:1180px;margin:0 auto;padding:24px 28px 80px}
+h2{font-size:17px;margin:24px 0 12px;display:flex;align-items:center;gap:8px;font-weight:700}
+h2:first-child{margin-top:0}
+h2 .ic{width:19px;height:19px;color:var(--accent);flex:none}
+.card{background:var(--panel);border:1px solid rgba(255,255,255,.75);border-radius:var(--r);box-shadow:var(--neu);padding:18px 20px}
+.grid{display:grid;gap:16px}
+.g4{grid-template-columns:repeat(4,1fr)}
+.g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:repeat(3,1fr)}
+@media(max-width:900px){.g4,.g2,.g3{grid-template-columns:1fr}}
+.stat{display:flex;align-items:center;gap:14px}
+.stat .big{font-size:26px;font-weight:700;letter-spacing:-.5px}
+.stat .sub{font-size:12px;color:var(--ink2)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border-radius:999px;background:linear-gradient(145deg,#f28ab4,#e0699c);color:#fff;font-weight:500;transition:background .18s,transform .12s,box-shadow .18s;box-shadow:4px 4px 10px rgba(214,138,172,.32),-3px -3px 8px rgba(255,255,255,.9)}
+.btn:hover{background:linear-gradient(145deg,#ee7aa9,#d95d92)}
+.btn:active{transform:scale(.96);box-shadow:var(--neu-in)}
+.btn.ghost{background:#fff3f8;color:var(--accent-deep);box-shadow:var(--neu-sm)}
+.btn.ghost:hover{background:#ffe9f3}
+.btn.sm{padding:4px 12px;font-size:12px}
+.btn.danger{background:#ffeef2;color:var(--danger);box-shadow:var(--neu-sm)}
+.btn.danger:hover{background:#fbdae2}
+.pbar{height:8px;background:#f9e6ee;border-radius:6px;overflow:hidden;flex:1}
+.pbar>i{display:block;height:100%;border-radius:6px;background:var(--accent);transition:width .4s}
+.tag{display:inline-block;padding:1px 9px;border-radius:999px;font-size:11px;font-weight:500}
+.tag.gray{background:#f6eff3;color:#b08fa0}
+.tag.blue{background:#f1ecf9;color:#8d6fae}
+.tag.green{background:#fdebf3;color:#c25d8a}
+.tag.orange{background:#fdf0e4;color:#bd7f51}
+.tag.red{background:#fde5e9;color:#c9566f}
+.tag.pink{background:#fdebf3;color:#c25d8a}
+table{width:100%;border-collapse:collapse}
+th{font-size:12px;color:var(--ink2);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);font-weight:500;white-space:nowrap}
+td{padding:10px;border-bottom:1px solid #fbeef4;vertical-align:middle}
+tr:hover td{background:#fef7fa}
+.course-card{border-top:4px solid var(--accent)}
+.task-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #fbeef4}
+.task-row:last-child{border-bottom:none}
+.chk{width:18px;height:18px;border:2px solid #eec3d6;border-radius:50%;flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;transition:background .18s,border-color .18s}
+.chk:hover{border-color:var(--accent)}
+.chk.on{background:var(--accent);border-color:var(--accent)}
+.bar-mini{height:6px;background:#f9e6ee;border-radius:4px;overflow:hidden;flex:1;min-width:60px}
+.bar-mini>i{display:block;height:100%;background:var(--accent);border-radius:4px}
+.muted{color:var(--ink2);font-size:12px}
+.sync-ok{color:var(--accent-deep)}
+#toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,14px);background:linear-gradient(145deg,#e879a6,#d15c8f);color:#fff;font-size:13px;padding:10px 18px;border-radius:999px;box-shadow:0 12px 28px rgba(200,100,150,.35);opacity:0;pointer-events:none;transition:opacity .28s,transform .28s;z-index:300;max-width:86vw;text-align:center}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+#pwa-hint{position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:8px;margin:0 auto 10px;max-width:1100px;padding:10px 14px;background:linear-gradient(145deg,#fdeef4,#f9dbe8);border:1px solid #f2cddd;border-radius:0 0 14px 14px;font-size:13px;line-height:1.5;color:#a24d73}
+#pwa-hint .ic{width:16px;height:16px;flex:none;color:var(--accent-deep)}
+#pwa-hint b{color:var(--accent-deep);font-weight:500}
+#pwa-hint .x{margin-left:auto;background:none;border:0;color:#c98aa8;font-size:19px;line-height:1;cursor:pointer;padding:0 2px}
+.modal-mask{position:fixed;inset:0;background:rgba(87,67,80,.4);backdrop-filter:blur(3px);z-index:100;display:flex;align-items:center;justify-content:center;padding:24px}
+.modal{background:linear-gradient(145deg,#fff8fb,#ffe9f3);border:1px solid rgba(255,255,255,.75);border-radius:22px;padding:24px;width:560px;max-width:100%;max-height:88vh;overflow:auto;box-shadow:0 24px 60px rgba(160,80,120,.3),-6px -6px 16px rgba(255,255,255,.6)}
+.modal h3{margin-bottom:6px;font-size:16px;display:flex;align-items:center;gap:7px}
+.modal h3 .ic{width:18px;height:18px;color:var(--accent)}
+.modal .row{display:flex;gap:12px}
+.modal .row>div{flex:1}
+.subtask{display:flex;align-items:center;gap:8px;padding:6px 0}
+.milestone{border-left:3px solid var(--accent);padding:10px 14px;background:linear-gradient(90deg,#fff2f8,#ffe9f3);border-radius:0 12px 12px 0;margin-bottom:10px;box-shadow:var(--neu-sm)}
+/* 总览统计图标块（参考渐变卡片排版） */
+.tile{width:46px;height:46px;border-radius:15px;background:linear-gradient(145deg,#f28ab4,#e0699c);display:flex;align-items:center;justify-content:center;color:#fff;flex:none;box-shadow:4px 4px 10px rgba(214,138,172,.32),-3px -3px 8px rgba(255,255,255,.9)}
+.tile .ic{width:22px;height:22px}
+.tile.soft{background:linear-gradient(145deg,#fff,#ffe4f0);color:var(--accent-deep);box-shadow:var(--neu-sm)}
+.tile.lilac{background:linear-gradient(145deg,#b49ae0,#9d7fd0);box-shadow:4px 4px 10px rgba(157,127,208,.3),-3px -3px 8px rgba(255,255,255,.9)}
+.prio-num{width:26px;height:26px;border-radius:9px 9px 9px 2px;background:var(--accent);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex:none}
+.prio-num.late{background:var(--danger)}
+.prio-num.near{background:var(--warn)}
+/* ===== 粘贴图片识别 ===== */
+.drop-paste{border:2px dashed #f0c4d8;background:linear-gradient(145deg,#fffafc,#ffeef6);border-radius:14px;padding:14px 16px;text-align:center;cursor:text;transition:border-color .18s,background .18s}
+.drop-paste:hover{border-color:var(--accent2)}
+.drop-paste.over{border-color:var(--accent);background:#ffe7f2;box-shadow:0 0 0 4px rgba(232,121,166,.14)};
+.drop-paste .ic{width:19px;height:19px;color:var(--accent)}
+.drop-paste b{color:var(--accent-deep)}
+.pv-wrap{margin-top:10px}
+.pv-box{position:relative;display:inline-block;line-height:0}
+.pv-box img{max-width:100%;max-height:190px;border-radius:12px;border:1px solid #f2cddd;display:block}
+.pv-box .pv-x{position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;background:rgba(209,92,143,.86);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;line-height:1;cursor:pointer}
+.pv-box .pv-x:hover{background:#c9566f}
+.pv-chip{display:inline-flex;align-items:center;gap:6px;background:#fdebf3;color:#c25d8a;border:1px solid #f5cfe0;border-radius:999px;padding:4px 12px;font-size:12px;margin-top:8px}
+.pv-chip .ic{width:14px;height:14px}
+.ai-lit-item{display:flex;align-items:flex-start;gap:8px;padding:9px 12px;border-radius:14px;background:var(--panel);border:1px solid rgba(255,255,255,.7);box-shadow:var(--neu-sm);margin-bottom:8px}
+.ai-lit-item .n{flex:none;min-width:20px;height:20px;border-radius:7px;background:var(--accent);color:#fff;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;padding:0 5px;margin-top:1px}
+.seg{display:inline-flex;background:#fdeef5;border-radius:999px;padding:3px;gap:2px;box-shadow:var(--neu-in)}
+.seg button{padding:5px 16px;border-radius:999px;color:var(--ink2);transition:.18s}
+.seg button.on{background:linear-gradient(145deg,#fff,#ffeef6);color:var(--accent-deep);font-weight:600;box-shadow:3px 3px 7px rgba(214,138,172,.22),-2px -2px 6px rgba(255,255,255,.95)}
+.todo-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:var(--panel);border:1px solid rgba(255,255,255,.7);box-shadow:var(--neu-sm);margin-bottom:8px;transition:.18s}
+.todo-item:hover{box-shadow:var(--neu)}
+.todo-item.done{opacity:.5}
+.todo-item .t{flex:1}
+.todo-item.done .t{text-decoration:line-through}
+/* ===== 待办：任务分组 + 子任务清单 ===== */
+.task-group{border-radius:16px;background:var(--panel);border:1px solid rgba(255,255,255,.7);box-shadow:var(--neu-sm);margin-bottom:12px;padding:11px 13px 9px;transition:.18s}
+.task-group:hover{box-shadow:var(--neu)}
+.tg-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:14px}
+.tg-head b{color:var(--ink)}
+.tg-dot{width:9px;height:9px;border-radius:50%;flex:none}
+.tg-subs{margin:3px 0 0 8px;padding-left:11px;border-left:2px solid #f6dbe7}
+.todo-item.sub{margin:6px 0 0;padding:7px 10px;background:linear-gradient(145deg,#fffafd,#fff2f8);box-shadow:none;border:1px solid rgba(255,255,255,.85)}
+.todo-item.sub:hover{box-shadow:var(--neu-sm)}
+.todo-item.sub .t{font-size:13.5px;color:var(--ink2)}
+/* ===== AI 结果可编辑表单 ===== */
+.ai-edit{border-radius:16px;background:var(--panel);border:1px solid rgba(255,255,255,.7);box-shadow:var(--neu-sm);margin-bottom:12px;padding:12px 13px}
+.ai-edit.off{opacity:.45}
+.ai-edit-head{display:flex;align-items:center;gap:8px}
+.ai-edit-head input[type=text]{flex:1;font-weight:600}
+.ai-edit-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-top:9px}
+.ai-edit-fields label{font-size:11px;color:var(--ink2);margin:0 0 3px;display:block}
+.ai-edit-fields input,.ai-edit-fields select{font-size:13px;padding:6px 9px}
+.ai-subs{margin-top:10px;border-top:1px dashed #f3d8e6;padding-top:9px}
+.ai-subs-head{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink2);margin-bottom:6px}
+.ai-sub-row{display:flex;align-items:center;gap:6px;margin-bottom:5px}
+.ai-sub-row input[type=text]{flex:1;font-size:13px;padding:6px 9px}
+.ai-sub-row .mini{width:26px;height:26px;padding:0;flex:none;font-size:12px;line-height:1}
+.ai-x{width:28px;height:28px;padding:0;flex:none;font-size:14px;line-height:1;border-radius:9px}
+.ai-tag-new{font-size:11px;padding:1px 7px;border-radius:8px;background:#fdeef5;color:#c25d8a;white-space:nowrap;flex:none}
+.todo-item.sub .chk{width:16px;height:16px}
+.tg-more{margin:6px 0 2px 2px;font-size:12px}
+.tip{background:#fdf0f6;border:1px solid #f2cddd;color:#b05780;border-radius:14px;padding:10px 14px;font-size:13px;margin-bottom:14px}
+.empty{text-align:center;color:var(--ink2);padding:36px 0}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--ink2);margin:8px 0}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+details summary{cursor:pointer;font-size:13px;color:var(--ink2)}
+/* ===== 内联 SVG 图标 ===== */
+i.ic{display:inline-flex;width:1.15em;height:1.15em;vertical-align:-.2em;flex:none}
+i.ic svg{width:100%;height:100%;display:block}
+/* ===== 工作板块：四步进度条 ===== */
+.stepper{display:flex;align-items:flex-start;margin:14px 0 4px}
+.stage{flex:0 0 auto;width:76px;text-align:center}
+.stage-dot{width:40px;height:40px;border-radius:14px 14px 14px 4px;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(145deg,#fff,#ffe9f3);border:1px solid rgba(255,255,255,.8);box-shadow:var(--neu-sm);cursor:pointer;transition:.18s;user-select:none;color:#c98aab}
+.stage-dot .ic{width:19px;height:19px}
+.stage-dot:hover{transform:translateY(-2px)}
+.stage.active .stage-dot{background:#fff0f6;border-color:var(--accent);color:var(--accent-deep);box-shadow:0 0 0 4px rgba(232,121,166,.16)}
+.stage.done .stage-dot{background:var(--ok);border-color:var(--ok);color:#fff}
+.stage-label{font-size:12px}
+.stage-meta{font-size:11px;color:var(--ink2)}
+.stage-meta.late{color:var(--danger);font-weight:600}
+.stage-line{flex:1;height:3px;border-radius:2px;background:#f6dce7;margin-top:19px;min-width:10px}
+.stage.done + .stage-line{background:var(--ok)}
+.stage.active + .stage-line{background:linear-gradient(90deg,var(--accent),#f6dce7)}
+/* ===== 存钱罐 ===== */
+.pig-wrap{display:flex;justify-content:center;align-items:center;position:relative}
+@keyframes dropcoin{0%{transform:translateY(-46px);opacity:0}60%{opacity:1}100%{transform:translateY(0);opacity:1}}
+.coin-fall{animation:dropcoin .7s cubic-bezier(.4,1.5,.6,1) both}
+@keyframes popbadge{0%{transform:scale(.7);opacity:0}100%{transform:scale(1);opacity:1}}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600;
+  background:#fff6e0;color:#a97a13;border:1px solid #f5dfa8;animation:popbadge .4s ease both}
+.badge.locked{background:#f8eff3;color:#c4a7b3;border-color:#f0dbe4;animation:none}
+.badge .ic{width:13px;height:13px}
+.money-big{font-size:34px;font-weight:800;letter-spacing:-1px;color:#c25d8a}
+.coin-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #fbeef4}
+.goal-bar{height:14px;border-radius:8px;background:#f9e6ee;overflow:hidden;position:relative}
+.goal-bar>i{display:block;height:100%;border-radius:8px;background:linear-gradient(90deg,#ffd479,#f0a13a);transition:width .8s}
+/* 细节 */
+::selection{background:#f8d9e7}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-thumb{background:#f0cddd;border-radius:8px}
+::-webkit-scrollbar-thumb:hover{background:#e7b3c9}
+::-webkit-scrollbar-track{background:transparent}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><span class="ic" data-ic="bow"></span>小岛的工作台<small>PASTEL SEMESTER</small></div>
+  <div class="seminfo" id="hdr-sem"></div>
+  <nav id="tabs"></nav>
+</header>
+<main id="view"></main>
+<div id="modal-root"></div>
+
+<script src="gsap.min.js"></script>
+<script src="ScrollTrigger.min.js"></script>
+<script src="vendor/pdf.min.js"></script>
+<script src="vendor/jszip.min.js"></script>
+<script>
+/* ================= 工具 ================= */
+const $=s=>document.querySelector(s);
+const uid=()=>Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-3);
+const pad=n=>String(n).padStart(2,'0');
+const d2s=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const s2d=s=>{const[a,b,c]=s.split('-').map(Number);return new Date(a,b-1,c)};
+const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+const todayStr=()=>d2s(new Date());
+const fmtMD=s=>s.slice(5).replace('-','/');
+const WEEKCN=['日','一','二','三','四','五','六'];
+const wk=s=>WEEKCN[s2d(s).getDay()];
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function daysBetween(a,b){return Math.round((s2d(b)-s2d(a))/864e5)}
+function teachWeek(ds){const diff=daysBetween(S.semester.start,ds);return diff<0?null:Math.floor(diff/7)+1}
+function semWeeks(){return Math.floor(daysBetween(S.semester.start,S.semester.end)/7)+1}
+function monthName(ds){return s2d(ds).getMonth()+1+'月'}
+
+/* ================= 可爱图标库（手绘线稿 SVG，替代 emoji） ================= */
+const __SVG=inner=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${inner}</svg>`;
+const ICONS={
+  bow:__SVG('<path d="M12 12c-2-2.6-5.2-3.9-6.9-2.7-1.4 1-1.4 4.4 0 5.4C6.8 15.9 10 14.6 12 12Z"/><path d="M12 12c2-2.6 5.2-3.9 6.9-2.7 1.4 1 1.4 4.4 0 5.4C17.2 15.9 14 14.6 12 12Z"/><circle cx="12" cy="12" r="1.8"/><path d="M10.7 13.9 9.6 18.6M13.3 13.9l1.1 4.7"/>'),
+  bunny:__SVG('<ellipse cx="9.2" cy="6.3" rx="1.9" ry="4"/><ellipse cx="14.8" cy="6.3" rx="1.9" ry="4"/><circle cx="12" cy="14.6" r="5.9"/><circle cx="10.2" cy="14" r=".55" fill="currentColor" stroke="none"/><circle cx="13.8" cy="14" r=".55" fill="currentColor" stroke="none"/><path d="M11.2 16.3c.5.5 1.1.5 1.6 0"/>'),
+  cat:__SVG('<path d="M7.6 9 6.4 4.6l3.9 1.9M16.4 9l1.2-4.4-3.9 1.9"/><circle cx="12" cy="13.4" r="6.2"/><circle cx="9.9" cy="12.6" r=".55" fill="currentColor" stroke="none"/><circle cx="14.1" cy="12.6" r=".55" fill="currentColor" stroke="none"/><path d="M11.3 14.9c.45.45 1 .45 1.4 0"/>'),
+  moon:__SVG('<path d="M19.2 14.3A7.6 7.6 0 0 1 9.7 4.8a7.6 7.6 0 1 0 9.5 9.5Z"/><path d="M16.8 4.6l.6 1.7 1.7.6-1.7.6-.6 1.7-.6-1.7-1.7-.6 1.7-.6Z"/>'),
+  camera:__SVG('<rect x="3.5" y="7.2" width="17" height="12.3" rx="3"/><path d="M9 7.2 10.2 5h3.6L15 7.2"/><circle cx="12" cy="13.2" r="3.1"/><circle cx="17.2" cy="10.2" r=".6" fill="currentColor" stroke="none"/>'),
+  flower:__SVG('<circle cx="12" cy="7" r="2.5"/><circle cx="16.6" cy="10.4" r="2.5"/><circle cx="14.9" cy="15.8" r="2.5"/><circle cx="9.1" cy="15.8" r="2.5"/><circle cx="7.4" cy="10.4" r="2.5"/><circle cx="12" cy="11.9" r="1.7"/>'),
+  pen:__SVG('<path d="M14.6 5.4 18.6 9.4 8.2 19.8l-4.6.6.6-4.6L14.6 5.4Z"/><path d="M12.7 7.3l4 4"/>'),
+  scissors:__SVG('<circle cx="6.8" cy="7" r="2.4"/><circle cx="6.8" cy="17" r="2.4"/><path d="M8.9 8.4 19.2 17M8.9 15.6 19.2 7"/>'),
+  send:__SVG('<path d="M19.8 4.2 4.2 10.6l5.9 2.4 2.4 5.9L19.8 4.2Z"/><path d="M10.1 13 19.8 4.2"/>'),
+  sparkle:__SVG('<path d="M12 4.4l1.5 4.1 4.1 1.5-4.1 1.5L12 15.6l-1.5-4.1-4.1-1.5 4.1-1.5L12 4.4Z"/><path d="M18.4 15.2l.6 1.7 1.7.6-1.7.6-.6 1.7-.6-1.7-1.7-.6 1.7-.6Z"/>'),
+  chart:__SVG('<path d="M4.5 4.5v15h15"/><path d="M9 15.5v-4M13 15.5V7.5M17 15.5v-6"/>'),
+  book:__SVG('<path d="M4.5 5.6A2.6 2.6 0 0 1 7.1 3h12.4v14.4H7.1a2.6 2.6 0 0 0-2.6 2.6V5.6Z"/><path d="M4.5 20a2.6 2.6 0 0 1 2.6-2.6h12.4"/>'),
+  cloud:__SVG('<path d="M7.3 18.5a4.4 4.4 0 0 1-.4-8.8 5.8 5.8 0 0 1 11.3 1.2 3.9 3.9 0 0 1-.7 7.6Z"/>'),
+  house:__SVG('<path d="M4.5 11.5 12 4.8l7.5 6.7"/><path d="M6.5 10.2v9.3h11v-9.3"/>'),
+  warn:__SVG('<circle cx="12" cy="12" r="8.4"/><path d="M12 8v4.6"/><circle cx="12" cy="15.9" r=".85" fill="currentColor" stroke="none"/>'),
+  star:__SVG('<path d="M12 4.6l2.1 4.4 4.8.6-3.5 3.4.9 4.8L12 15.5l-4.3 2.3.9-4.8L5.1 9.6l4.8-.6L12 4.6Z"/>'),
+  heart:__SVG('<path d="M12 19.3S4.7 15 4.7 9.9A3.9 3.9 0 0 1 12 7.8a3.9 3.9 0 0 1 7.3 2.1c0 5.1-7.3 9.4-7.3 9.4Z"/>'),
+  wand:__SVG('<path d="M5.2 18.8 14.6 9.4"/><path d="M15.4 4.9l.7 1.9 1.9.7-1.9.7-.7 1.9-.7-1.9-1.9-.7 1.9-.7Z"/><path d="M19.3 12.6l.5 1.3 1.3.5-1.3.5-.5 1.3-.5-1.3-1.3-.5 1.3-.5Z"/>'),
+  bulb:__SVG('<path d="M9.2 17.6c-.3-1.9-1.1-2.9-1.9-3.8a5.4 5.4 0 1 1 9.4 0c-.8.9-1.6 1.9-1.9 3.8Z"/><path d="M9.8 20.6h4.4"/>'),
+  calendar:__SVG('<rect x="4" y="5.4" width="16" height="14.6" rx="2.6"/><path d="M4 10h16M8.4 3.4v3.8M15.6 3.4v3.8"/><circle cx="12" cy="14.8" r="1" fill="currentColor" stroke="none"/>'),
+  cup:__SVG('<path d="M5 8.6h11v5.8a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5Z"/><path d="M16 9.8h1.4a2.4 2.4 0 0 1 0 4.8H16"/><path d="M8.6 5.8c0-1 .7-1 .7-2M11.8 5.8c0-1 .7-1 .7-2"/>'),
+  clock:__SVG('<circle cx="12" cy="12" r="8.4"/><path d="M12 7.6V12l2.9 1.9"/>'),
+  star4:__SVG('<path d="M12 3.8l1.9 6.3 6.3 1.9-6.3 1.9L12 20.2l-1.9-6.3-6.3-1.9 6.3-1.9L12 3.8Z"/>'),
+  coin:__SVG('<circle cx="12" cy="12" r="8.2"/><path d="M9.4 8.8 12 12l2.6-3.2M12 12v4.6M9.6 13.6h4.8"/>'),
+  tray:__SVG('<path d="M4.5 13.4v5.1h15v-5.1"/><path d="M12 4.4v9.2M8.6 10.2l3.4 3.4 3.4-3.4"/>'),
+  search:__SVG('<circle cx="11" cy="11" r="6.4"/><path d="M15.6 15.6 20 20"/>'),
+  medal:__SVG('<circle cx="12" cy="14.6" r="4.9"/><path d="M9.3 10.4 6.8 3.8h10.4l-2.5 6.6"/><circle cx="12" cy="14.6" r="1" fill="currentColor" stroke="none"/>'),
+  lock:__SVG('<rect x="5.6" y="10.4" width="12.8" height="9.4" rx="2.6"/><path d="M8.6 10.4V8.2a3.4 3.4 0 0 1 6.8 0v2.2"/>'),
+  list:__SVG('<path d="M8.6 6h10.9M8.6 12h10.9M8.6 18h10.9"/><circle cx="4.9" cy="6" r=".9" fill="currentColor" stroke="none"/><circle cx="4.9" cy="12" r=".9" fill="currentColor" stroke="none"/><circle cx="4.9" cy="18" r=".9" fill="currentColor" stroke="none"/>'),
+  pig:__SVG('<path d="M5.3 13c0-3 2.8-5.1 6.7-5.1 3.5 0 6.1 1.7 6.6 4.1l1.6.6v3l-2 .5c-.4 1-1.2 1.9-2.3 2.4v1.7h-2.2l-.4-1h-2.2l-.4 1H8.5v-1.6A5.3 5.3 0 0 1 5.3 13Z"/><path d="M10.4 8.2c1-.3 2.2-.3 3.2 0"/><circle cx="9" cy="12.4" r=".6" fill="currentColor" stroke="none"/>'),
+  cap:__SVG('<path d="M3.6 9.6 12 6l8.4 3.6L12 13.2 3.6 9.6Z"/><path d="M7.2 11.4v3.8c0 1.2 2.1 2.4 4.8 2.4s4.8-1.2 4.8-2.4v-3.8"/><path d="M19.4 10.2v4.6"/>'),
+  image:__SVG('<rect x="3.6" y="5" width="16.8" height="14" rx="3"/><circle cx="8.8" cy="9.8" r="1.7"/><path d="M4.6 17.2 9.8 12.4l3.4 3 2.9-2.6 3.4 3.2"/>'),
+  target:__SVG('<circle cx="12" cy="12" r="8.3"/><circle cx="12" cy="12" r="4.2"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/>'),
+  up:__SVG('<path d="M12 19.2V5.4"/><path d="M6.6 10.6 12 5.2l5.4 5.4"/>'),
+  down:__SVG('<path d="M12 4.8v13.8"/><path d="M6.6 13.4 12 18.8l5.4-5.4"/>'),
+  plus:__SVG('<path d="M12 5.4v13.2M5.4 12h13.2"/>')
+};
+function hydrateIcons(root){
+  if(!root&&typeof document==='undefined')return;
+  (root||document).querySelectorAll('i.ic[data-ic]').forEach(el=>{
+    if(el.dataset.done)return;el.dataset.done='1';
+    el.innerHTML=ICONS[el.dataset.ic]||'';
+  });
+}
+new MutationObserver(()=>hydrateIcons()).observe(document.body,{childList:true,subtree:true});
+
+const TYPES=['考试','作业','实验','报告','项目','答辩','预习/阅读','其他'];
+const TYPE_COLOR={'考试':'red','作业':'blue','实验':'orange','报告':'blue','项目':'green','答辩':'red','预习/阅读':'gray','其他':'gray'};
+// 小红书工作：四步固定流程
+const WORK_STAGES=[
+  {key:'script',label:'写脚本',icon:'<i class="ic" data-ic="pen"></i>'},
+  {key:'shoot', label:'拍摄',  icon:'<i class="ic" data-ic="camera"></i>'},
+  {key:'edit',  label:'剪辑',  icon:'<i class="ic" data-ic="scissors"></i>'},
+  {key:'publish',label:'发布', icon:'<i class="ic" data-ic="send"></i>'}
+];
+const WORK_TYPES=['品牌广告','产品种草','探店笔记','Vlog','直播','图文笔记','其他'];
+const WORK_COLOR='#e879a6';
+
+/* ================= 状态 ================= */
+const KEY='semester-workbench-v1';
+const CLIENT='c'+Math.random().toString(36).slice(2,8); // 本设备标识，用于冲突提示
+function defaultState(){return{
+  semester:{name:'2026 秋季学期',start:'2026-09-14',end:'2027-01-17'},
+  courses:[],tasks:[],todos:{},projects:[],income:[],
+  dismissed:{}, // { '2026-09-14': ['task:xxx', ...] } 当天被手动删掉的自动建议，当天不再自动加回
+  settings:{ai:{endpoint:'https://api.deepseek.com/chat/completions',key:'',model:'deepseek-flash'},workPerDay:3,totalGoal:10000,
+    github:{token:'',gistId:'',api:'https://api.github.com',enabled:false}}, // 云同步：数据存 GitHub 秘密 Gist，跨互联网多设备 + 历史版本
+  _rev:0,updatedAt:0
+}}
+let S=defaultState(),MODE='local'; // local=仅本机浏览器 / server=已连上数据服务（电脑与手机共用同一份）/ cloud=已连上 GitHub Gist（任何设备共用同一份）
+let REV=0;            // 本机已知的数据版本号（服务端/Gist 通用）
+let DIRTY=false;      // 本机是否有还没同步成功的改动
+let saveTimer=null,pollTimer=null,conflictShown=false,syncNote='';
+let GIST_ETAG='',GIST_LAST=null,lastCloudPush=0,cloudTimer=null; // Gist 条件请求缓存（ETag+最近一次内容）/ 推送节流
+const GIST_FILE='data.json';
+
+function localCopy(){try{const d=JSON.parse(localStorage.getItem(KEY));if(d&&Array.isArray(d.tasks))return d}catch(e){}return null}
+function hasData(d){return !!(d&&((d.tasks&&d.tasks.length)||(d.courses&&d.courses.length)||(d.projects&&d.projects.length)))}
+/* UI 层的「可改动」判断：正在渲染 / 正在填弹窗 / 还有没推上去的改动时，别让同步覆盖掉 */
+function canWriteUI(){return !FX.busy&&!(typeof DIRTY!=='undefined'&&DIRTY)&&!($('#modal-root')&&$('#modal-root').innerHTML)}
+function persist(){S.updatedAt=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+
+/* 兜底备份：任何要把本机数据换成服务端数据的时刻，先把本机那份悄悄存起来，
+   万一你发现内容不对，可以在「设置 → 数据与同步」里一键找回。 */
+const KEY_BAK=KEY+'.bak';
+function stashLocal(reason){
+  try{
+    const cur=localStorage.getItem(KEY);
+    if(!cur)return;
+    localStorage.setItem(KEY_BAK,JSON.stringify({at:Date.now(),reason:reason||'',data:cur}));
+  }catch(e){}
+}
+function bakInfo(){
+  try{const o=JSON.parse(localStorage.getItem(KEY_BAK)||'null');return o&&o.at?new Date(o.at).toLocaleString('zh-CN',{hour12:false}):''}catch(e){return ''}
+}
+function restoreLocal(){
+  try{
+    const o=JSON.parse(localStorage.getItem(KEY_BAK)||'null');
+    if(!o||!o.data){alert('本机没有可恢复的备份');return}
+    const d=typeof o.data==='string'?JSON.parse(o.data):o.data;
+    if(!d||!Array.isArray(d.tasks)){alert('这份备份内容不可用');return}
+    if(!confirm('将用本机备份（保存于 '+new Date(o.at).toLocaleString('zh-CN',{hour12:false})+'）覆盖当前数据，并同步到 E 盘。确定继续？'))return;
+    S=Object.assign(defaultState(),d);S.updatedAt=Date.now();persist();syncPush(true);render();
+    alert('已恢复本机备份');
+  }catch(e){alert('恢复失败：'+e.message)}
+}
+
+/* 保存：先落浏览器（防丢），再推给数据服务 / 云端 Gist（多设备同步） */
+function save(){persist();syncPush()}
+function syncPush(force){
+  if(MODE!=='server'&&MODE!=='cloud')return;
+  DIRTY=true;clearTimeout(saveTimer);
+  // 云端防抖更长：Gist 每次保存都会留一个历史版本，别把版本历史刷屏
+  saveTimer=setTimeout(()=>pushNow(force),MODE==='cloud'?1500:400);
+}
+async function pushNow(force){
+  if(MODE==='server'){
+    try{
+      const body=JSON.stringify(Object.assign({},S,{_rev:REV,_client:CLIENT}));
+      const r=await fetch('/api/state'+(force?'?force=1':''),{method:'POST',headers:{'Content-Type':'application/json'},body});
+      if(r.status===409){DIRTY=false;return handleConflict(await r.json())}
+      if(r.ok){
+        const d=await r.json();
+        if(typeof d.rev==='number')REV=d.rev;
+        S._rev=REV;DIRTY=false;conflictShown=false;
+        try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}
+        setSyncLabel('已同步');syncNote='已同步';
+      }
+    }catch(e){setSyncLabel('未连上电脑服务');}
+    return;
+  }
+  if(MODE==='cloud'){
+    try{
+      if(!force&&Date.now()-lastCloudPush<60000){
+        // 节流：一分钟内的多次改动攒成一版再推，避免历史版本刷屏（「立即同步」不受限）
+        clearTimeout(cloudTimer);
+        cloudTimer=setTimeout(()=>pushNow(true),60000-(Date.now()-lastCloudPush));
+        return;
+      }
+      if(!force){
+        // Gist 没有条件更新：推送前先取云端最新，版本对不上就走冲突对话框，绝不静默覆盖
+        const r=await gistGet();
+        if(r.error){setSyncLabel('云同步失败');syncNote='云同步失败';toast('云同步失败：'+r.error);return}
+        if(r.data&&typeof r.data._rev==='number'&&r.data._rev!==(REV||0)){
+          DIRTY=false;
+          return handleConflict({data:r.data,rev:r.data._rev||0});
+        }
+      }
+      lastCloudPush=Date.now();
+      // 冲突覆盖（force）时取「双方已知最大版本号 +1」，绝不能跟云端现有 rev 撞号，
+      // 否则另一台设备会因「版本号没变」永远看不到新内容
+      let base=REV||0;
+      if(force){
+        try{const r0=await gistGet();if(r0.data&&typeof r0.data._rev==='number')base=Math.max(base,r0.data._rev)}catch(e2){}
+      }
+      const next=Object.assign({},S,{_rev:base+1,_client:CLIENT});
+      const pr=await gistPatch(next);
+      if(pr.ok){
+        REV=next._rev;S._rev=REV;DIRTY=false;conflictShown=false;GIST_ETAG='';GIST_LAST=null;
+        try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}
+        setSyncLabel('已同步');syncNote='已同步';
+      }else{setSyncLabel('云同步失败');syncNote='云同步失败';toast('云同步失败：'+(pr.error||'未知错误'))}
+    }catch(e){setSyncLabel('未连上云端');}
+  }
+}
+/* ============ GitHub 云同步（秘密 Gist）：跨互联网多设备 + 历史版本 ============
+   数据存在你 GitHub 账号的秘密 Gist（public:false，不公开列出，仅令牌可读写）。
+   每次 PATCH 保存，Gist 自动留一个 revision，GitHub 网页可随时查看/回滚 —— 这就是历史版本。
+   Gist API 不支持条件更新，所以推送前先 GET 对比 _rev，对不上就走 handleConflict，绝不静默覆盖。 */
+function ghCfg(){
+  const g=S.settings.github||{};
+  return {token:g.token||'',gistId:(g.gistId||'').trim(),api:((g.api||'https://api.github.com').trim()||'https://api.github.com').replace(/\/+$/,'')};
+}
+function ghHeaders(extra){
+  const c=ghCfg();
+  return Object.assign({'Authorization':'Bearer '+c.token,'Accept':'application/vnd.github+json'},extra||{});
+}
+/* GET Gist：带 ETag 条件请求，内容没变时 GitHub 返回 304，不消耗 API 限额 —— 轮询成本极低 */
+async function gistGet(){
+  const c=ghCfg();
+  if(!c.token||!c.gistId)return {error:'未配置完整（需要 Token 和 Gist ID）'};
+  try{
+    const h={};
+    if(GIST_ETAG)h['If-None-Match']=GIST_ETAG;
+    const r=await fetch(c.api+'/gists/'+encodeURIComponent(c.gistId),{headers:ghHeaders(h),cache:'no-store'});
+    if(r.status===304)return {unchanged:true,data:GIST_LAST}; // 内容没变 = 与上次拿到的相同，直接复用缓存
+    if(r.status===401)return {error:'令牌无效或过期（401），请到 GitHub 重新生成'};
+    if(r.status===404)return {error:'找不到这个 Gist（404），请检查 Gist ID 或令牌权限'};
+    if(!r.ok)return {error:'GitHub 返回 HTTP '+r.status+(r.status===403?'（可能触发限速，请稍等再试）':'')};
+    GIST_ETAG=r.headers.get('ETag')||'';
+    const j=await r.json();
+    const f=j.files&&j.files[GIST_FILE];
+    if(!f){GIST_LAST=null;return {data:null}} // Gist 存在但还没写过数据文件 → 视作空云端（首次会自动播种）
+    if(f.truncated)return {error:'Gist 里的数据文件过大被截断，为防丢失已暂停同步'};
+    let d=null;
+    try{d=f.content?JSON.parse(f.content):null}catch(e){return {error:'Gist 里的 data.json 不是有效 JSON'}}
+    GIST_LAST=d;
+    return {data:d};
+  }catch(e){return {error:'连不上 GitHub（'+((e&&e.message)||e)+'）。网络不稳定可在设置里填代理 API 地址'}}
+}
+async function gistPatch(obj){
+  const c=ghCfg();
+  try{
+    const r=await fetch(c.api+'/gists/'+encodeURIComponent(c.gistId),{method:'PATCH',headers:ghHeaders({'Content-Type':'application/json'}),
+      body:JSON.stringify({files:{"data.json":{content:JSON.stringify(obj)}}})});
+    if(r.status===401)return {error:'令牌无效或没有 gist 权限（401）'};
+    if(!r.ok)return {error:'GitHub 返回 HTTP '+r.status};
+    return {ok:true};
+  }catch(e){return {error:'连不上 GitHub'}}
+}
+async function gistCreate(obj){
+  const c=ghCfg();
+  try{
+    const r=await fetch(c.api+'/gists',{method:'POST',headers:ghHeaders({'Content-Type':'application/json'}),
+      body:JSON.stringify({description:'小岛的工作台 · 数据自动同步（每次保存自动留历史版本）',public:false,files:{"data.json":{content:JSON.stringify(obj)}}})});
+    if(!r.ok)return {error:'创建 Gist 失败：HTTP '+r.status};
+    const j=await r.json();
+    if(!j||!j.id)return {error:'创建 Gist 失败：响应里没有 id'};
+    return {id:j.id};
+  }catch(e){return {error:'连不上 GitHub，创建失败（数据仍安全存在本机）'}}
+}
+/* cloud 模式初始化：取云端数据并融合（逻辑与 server 模式一致：按 updatedAt 取较新、空云端播种本机） */
+async function initCloud(){
+  try{
+    const r=await gistGet();
+    if(r.error)return {ok:false,error:r.error};
+    const local=localCopy();
+    MODE='cloud';
+    const cd=r.data||null;
+    REV=(cd&&cd._rev)||0;
+    const cHas=hasData(cd),lcHas=hasData(local);
+    let need=false;
+    if(cHas&&lcHas){
+      if((local.updatedAt||0)>(cd.updatedAt||0)){
+        S=Object.assign(defaultState(),local);S._rev=REV;persist();need=true;
+        syncNote='已把本机数据合并到云端';
+      }else{stashLocal('初始化时以云端为准');S=Object.assign(defaultState(),cd||{});syncNote='已连上云端'}
+    }else if(cHas){S=Object.assign(defaultState(),cd||{});syncNote='已连上云端'}
+    else if(lcHas){S=Object.assign(defaultState(),local);S._rev=REV;persist();need=true;syncNote='已把本机数据写入云端'}
+    else{S=Object.assign(defaultState(),cd||{});S._rev=REV;syncNote='云端还没有数据'}
+    return {ok:true,needPush:need};
+  }catch(e){return {ok:false,error:(e&&e.message)||'未知错误'}}
+}
+function ghSyncNow(){
+  const g=S.settings.github||{};
+  if(!g.enabled||!g.token||!g.gistId){alert('先在下方填好 Token 并保存启用（Gist ID 也有了才能同步）');return}
+  toast('正在同步到云端…');
+  pushNow(true);
+}
+function ghHistory(){
+  const g=S.settings.github||{};
+  if(!g.gistId){alert('还没有云端 Gist。先保存云同步设置，首次同步会自动创建');return}
+  window.open('https://gist.github.com/'+g.gistId+'/revisions','_blank');
+}
+function saveGitHub(){
+  const token=$('#gh-token').value.trim(),gistId=$('#gh-gist').value.trim();
+  const api=$('#gh-api').value.trim()||'https://api.github.com';
+  const enabled=$('#gh-on')&&$('#gh-on').checked;
+  if(enabled&&!token){alert('启用云同步需要先填 Personal Access Token（github.com/settings/tokens 生成，勾选 gist 权限）');return}
+  S.settings.github={token:token,gistId:gistId,api:api,enabled:enabled};
+  persist();
+  if(enabled&&!gistId){
+    // 首次启用：自动创建一个秘密 Gist，把当前数据放进去
+    const btn=$('#gh-save');if(btn){btn.disabled=true;btn.textContent='正在创建…'}
+    gistCreate(S).then(r=>{
+      if(btn){btn.disabled=false;btn.textContent='保存并启用'}
+      if(r.error){alert('云端 Gist 创建失败：'+r.error+'\n\n数据仍安全地存在本机，请检查 Token 后重试');return}
+      S.settings.github.gistId=r.id;GIST_ETAG='';GIST_LAST=null;persist();
+      alert('已自动创建秘密 Gist（不公开，只有你的令牌能读写）。\nGist ID：'+r.id+'\n\n已帮你填好。以后换设备时只需填 Token 和这个 ID，或直接导入本页导出的设置。');
+      save();
+    });
+    return;
+  }
+  if(enabled){save()} // 启用状态改了配置就顺手推一版
+  render();
+}
+async function testGitHub(){
+  const out=$('#gh-test');if(!out)return;
+  const token=$('#gh-token').value.trim(),gid=$('#gh-gist').value.trim();
+  const api=($('#gh-api').value.trim()||'https://api.github.com').replace(/\/+$/,'');
+  if(!token){out.textContent='请先填 Personal Access Token';return}
+  out.textContent='正在测试…';
+  try{
+    const H={'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json'};
+    if(gid){
+      const r=await fetch(api+'/gists/'+encodeURIComponent(gid),{headers:H});
+      if(r.status===401){out.textContent='❌ 令牌无效或过期（401）';return}
+      if(r.status===404){out.textContent='❌ 找不到 Gist（404）——检查 Gist ID，或令牌没有勾 gist 权限';return}
+      if(!r.ok){out.textContent='❌ GitHub 返回 HTTP '+r.status;return}
+      const j=await r.json();
+      const f=j.files&&j.files[GIST_FILE];
+      out.textContent='✅ 连接成功；Gist 里'+(f?('已有数据（约 '+Math.round((f.content||'').length/1024)+' KB）'):'还没有数据文件（首次同步会自动写入）');
+    }else{
+      const r=await fetch(api+'/user',{headers:H});
+      if(r.status===401){out.textContent='❌ 令牌无效或过期（401）';return}
+      if(!r.ok){out.textContent='❌ GitHub 返回 HTTP '+r.status;return}
+      const j=await r.json();
+      out.textContent='✅ 令牌有效（账号 '+(j.login||'?')+'）；Gist ID 留空保存后会自动创建';
+    }
+  }catch(e){
+    out.textContent='❌ 连不上 GitHub（'+((e&&e.message)||e)+'）——网络不稳可在「API 地址」填代理';
+  }
+}
+/* 另一台设备也改过：交给用户决定，绝不静默覆盖 */
+function handleConflict(d){
+  setSyncLabel('有冲突待处理');
+  if(conflictShown)return;conflictShown=true;
+  const mine=S.updatedAt||0, theirs=(d.data&&d.data.updatedAt)||0;
+  const t=n=>n?new Date(n).toLocaleString('zh-CN',{hour12:false}):'未知';
+  const dest=MODE==='cloud'?'云端 Gist':'服务端';
+  const useMine=confirm(
+    '检测到另一台设备也修改过数据，需要你决定保留哪一份：\n\n'+
+    '· 本机改动时间：'+t(mine)+'\n'+
+    '· '+dest+'改动时间：'+t(theirs)+'\n\n'+
+    '【确定】= 用本机这份覆盖'+dest+'（另一台的改动会丢失）\n'+
+    '【取消】= 载入'+dest+'最新那份（本机这次的改动会丢失）\n\n'+
+    '拿不准就点取消，然后到「设置 → 数据与同步」导出备份再处理。'
+  );
+  if(useMine){pushNow(true)}
+  else{stashLocal('冲突时选择载入最新');REV=d.rev||0;S=Object.assign(defaultState(),d.data||{});S._rev=REV;persist();render();setSyncLabel('已载入最新数据');syncNote='已载入最新数据'}
+}
+/* 轮询：另一台设备改动后，这边自动跟上（server 走本机服务；cloud 走 Gist，ETag 条件请求没变化时几乎零成本） */
+async function syncPull(){
+  if((MODE!=='server'&&MODE!=='cloud')||document.hidden)return;
+  if($('#modal-root')&&$('#modal-root').innerHTML)return; // 正在填表单就先不动，免得打断
+  // 弹窗（含识别模块）打开着就整体跳过，避免把用户正填的内容重置掉
+  if(typeof canWriteUI==='function'&&!canWriteUI())return;
+  if(MODE==='cloud'){
+    try{
+      const r=await gistGet();
+      if(r.unchanged||r.error||!r.data)return;
+      const d=r.data,rv=typeof d._rev==='number'?d._rev:0;
+      if(rv===REV||DIRTY)return;   // 没变化 / 本机还有没推上去的改动
+      if((d.updatedAt||0)<(S.updatedAt||0))return; // 云端比本机旧（多半是刚推完还没等到），别拿旧的盖新的
+      stashLocal('自动同步云端改动前');
+      REV=rv;S=Object.assign(defaultState(),d);S._rev=REV;persist();render();
+      setSyncLabel('已同步最新数据');syncNote='已同步最新数据';toast('已同步另一台设备的改动');
+    }catch(e){}
+    return;
+  }
+  try{
+    const r=await fetch('/api/state',{cache:'no-store'});if(!r.ok)return;
+    const d=await r.json();if(!d||typeof d!=='object')return;
+    const rv=d._rev||0;
+    if(rv===REV||DIRTY)return;   // 没变化 / 本机还有没推上去的改动
+    stashLocal('自动同步服务端改动前');
+    REV=rv;S=Object.assign(defaultState(),d);persist();render();
+    setSyncLabel('已同步最新数据');syncNote='已同步最新数据';toast('已同步另一台设备的改动');
+  }catch(e){}
+}
+function startPolling(){clearInterval(pollTimer);pollTimer=setInterval(syncPull,5000)}
+function setSyncLabel(t){
+  syncNote=t;
+  const el=$('#sync-label');if(el){el.textContent=t;el.className='muted sync-'+({ '已同步':'ok','已同步最新数据':'ok'}[t]||'')}
+}
+function toast(msg){
+  let el=$('#toast');if(!el){el=document.createElement('div');el.id='toast';document.body.appendChild(el)}
+  el.textContent=msg;el.classList.add('on');
+  clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('on'),2400);
+}
+/* iOS 首次访问时提示「添加到主屏幕」，关掉后不再出现 */
+function closePwaHint(){const e=$('#pwa-hint');if(e)e.remove();try{localStorage.setItem('wsp-hint-closed','1')}catch(e){}}
+function pwaHint(){
+  try{
+    const ua=navigator.userAgent||'';
+    const isIOS=/iPad|iPhone|iPod/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+    if(!isIOS)return;
+    const standalone=(window.navigator.standalone===true)||(typeof window.matchMedia==='function'&&window.matchMedia('(display-mode: standalone)').matches);
+    if(standalone)return;                                   // 已经是从桌面图标打开的，不用提示
+    if(localStorage.getItem('wsp-hint-closed')==='1')return; // 提示过并被关掉，就不再打扰
+    document.body.insertAdjacentHTML('afterbegin',
+      '<div id="pwa-hint"><i class="ic" data-ic="bunny"></i><span>想把它当 App 用？点底部的 <b>分享</b> 按钮，选 <b>添加到主屏幕</b>。之后从桌面图标打开就是全屏应用，没有地址栏。</span><button class="x" onclick="closePwaHint()" aria-label="关闭">×</button></div>');
+  }catch(e){}
+}
+async function init(){
+  let serverData=null,reachable=false,needPush=false;
+  // ⚠️ 此刻 S 还是 defaultState()，本机数据还没载入 —— 云同步配置必须直接从 localStorage 读
+  const lc0=localCopy();
+  const gh=(lc0&&lc0.settings&&lc0.settings.github)||S.settings.github||{};
+  if(gh.enabled&&gh.token&&gh.gistId){
+    S.settings.github=gh; // 让 ghCfg() 立刻读得到（真正融合数据后会被再次覆盖为同一份）
+    const ic=await initCloud();
+    if(ic.ok){
+      S.settings.github=gh; // 本机填的配置最权威（云端那份可能滞后于用户刚改的 Token）
+      needPush=ic.needPush;startPolling();
+    }
+    else toast('GitHub 云同步没连上（'+ic.error+'），先用本机/服务端模式');
+  }
+  if(MODE!=='cloud'){
+  try{
+    const r=await fetch('/api/state',{cache:'no-store'});
+    if(r.ok){const d=await r.json();if(d&&typeof d==='object'){serverData=d;reachable=true}}
+  }catch(e){}
+  const local=localCopy();
+
+  if(reachable){
+    // 能连上数据服务，就以服务端为共用主存储 —— 电脑和手机看到的是同一份
+    MODE='server';REV=serverData._rev||0;
+    const svHas=hasData(serverData),lcHas=hasData(local);
+    if(svHas&&lcHas){
+      // 两边都有内容：按最后修改时间取较新的，避免覆盖新数据
+      if((local.updatedAt||0)>(serverData.updatedAt||0)){
+        S=Object.assign(defaultState(),local);S._rev=REV;persist();needPush=true;
+        syncNote='已把本机数据合并到服务端';
+      }else{stashLocal('初始化时以服务端为准');S=Object.assign(defaultState(),serverData)}
+    }else if(svHas){S=Object.assign(defaultState(),serverData)}
+    else if(lcHas){S=Object.assign(defaultState(),local);S._rev=REV;persist();needPush=true;syncNote='已把本机数据写入服务端'}
+    else{S=Object.assign(defaultState(),serverData||{});S._rev=REV}
+    startPolling();
+  }else{
+    MODE='local'; // 没连上服务/云端：退化为本机浏览器存储，功能照常用
+    if(local)S=Object.assign(defaultState(),local);
+  }
+  }
+  if(S.semester.start==='2026-09-07')S.semester.start='2026-09-14'; // 旧数据迁移
+  if(!Array.isArray(S.projects))S.projects=[];
+  if(!Array.isArray(S.income))S.income=[];
+  S.projects.forEach(p=>{ // 补全缺失阶段
+    p.stages=p.stages||{};
+    WORK_STAGES.forEach(s=>{if(!p.stages[s.key])p.stages[s.key]={est:4,due:'',status:0,progress:0}});
+  });
+  Object.keys(S.todos||{}).forEach(ds=>S.todos[ds].forEach(x=>{if(!x.ref&&x.taskId)x.ref='task:'+x.taskId;if(!x.kind)x.kind='study'}));
+  // 子任务补 id：老数据（AI 导入/早期版本）可能只有 name/done，没 id 就无法定位到具体一条
+  S.tasks.forEach(t=>{
+    if(!Array.isArray(t.subtasks))t.subtasks=[];
+    t.subtasks.forEach(s=>{if(!s.id)s.id=uid()});
+  });
+  if(!S.dismissed||typeof S.dismissed!=='object')S.dismissed={};
+  if(!S.settings||typeof S.settings.workPerDay!=='number')S.settings=Object.assign(defaultState().settings,S.settings||{});
+  if(!S.settings.ai)S.settings.ai=defaultState().settings.ai;
+  if(!S.settings.github)S.settings.github=defaultState().settings.github; // 云同步配置补全（老数据没有这个字段）
+  if(!S.settings.totalGoal)S.settings.totalGoal=10000;
+  S._rev=REV;
+  if(needPush)save(); else persist(); // 无改动时不空推，免得版本号乱跳
+  renderTabs();render();
+  setSyncLabel((MODE==='server'||MODE==='cloud')?(syncNote||'已同步'):'仅保存在本机浏览器');
+  pwaHint();
+  if(!S.courses.length&&!S.tasks.length){
+    $('#view').insertAdjacentHTML('beforeend',`<div class="card" style="margin-top:16px;text-align:center">
+      <b><i class="ic" data-ic="sparkle"></i> 欢迎使用小岛的工作台</b>
+      <div class="muted" style="margin:6px 0 12px">第一次使用？加载示例数据看看效果，或直接添加你自己的课程。</div>
+      <button class="btn" onclick="loadDemo()"><i class="ic" data-ic="sparkle"></i> 加载示例数据</button>
+      <button class="btn ghost" onclick="go('courses')" style="margin-left:8px">添加我的课程</button>
+    </div>`);
+  }
+}
+
+/* ================= 进度计算 ================= */
+function taskProgress(t){
+  if(t.done)return 100;
+  if(t.subtasks&&t.subtasks.length)return Math.round(100*t.subtasks.filter(s=>s.done).length/t.subtasks.length);
+  return t.manualProgress||0;
+}
+function courseProgress(cid){
+  const ts=S.tasks.filter(t=>t.courseId===cid);
+  if(!ts.length)return 0;
+  let w=0,p=0;ts.forEach(t=>{const h=t.estHours||4;w+=h;p+=h*taskProgress(t)/100});
+  return w?Math.round(p/w*100):0;
+}
+function semesterProgress(){
+  const total=daysBetween(S.semester.start,S.semester.end);
+  return Math.min(100,Math.max(0,Math.round(100*daysBetween(S.semester.start,todayStr())/total)));
+}
+function orderedTasks(){
+  const map={};S.tasks.forEach(t=>map[t.id]=t);
+  const eff=t=>{let d=t.dueDate;(t.dependencies||[]).forEach(id=>{const p=map[id];if(p&&p.dueDate>d)d=p.dueDate});return d};
+  return[...S.tasks].sort((a,b)=>eff(a)<eff(b)?-1:eff(a)>eff(b)?1:0);
+}
+/* 统一规划条目：学习任务 + 小红书工作的四个阶段 */
+/* ================= 每周重复任务 =================
+   例：「中国新闻传播史 每周二小测」——任务带 repeat:{freq:'weekly',weekday:2}（0=周日）。
+   repeatDates 在学期内（学期开始 → min(截止日期, 学期结束)）展开每一次发生日；
+   allPlanItems 据此生成两类条目（不写回任务本身）：
+   - 发生日当天：ref rpt:<id>:<ds>，当天去做这件事
+   - 前一天：ref rpt:<id>:<ds>:prep，名字「准备：xxx」，提前一天提醒复习
+   带重复的任务不再生成基础 task: 条目（否则预计工时会被摊满整个学期）。 */
+const WEEKDAY_NAMES=['周日','周一','周二','周三','周四','周五','周六'];
+function isRepeatTask(t){return !!(t.repeat&&t.repeat.freq==='weekly'&&t.repeat.weekday>=0&&t.repeat.weekday<=6)}
+function repeatDates(t){
+  const out=[];
+  if(!isRepeatTask(t))return out;
+  const end=t.dueDate&&t.dueDate<S.semester.end?t.dueDate:S.semester.end;
+  let d=s2d(S.semester.start);
+  while(d.getDay()!==t.repeat.weekday)d=addDays(d,1);
+  for(let guard=0;guard<400;guard++){
+    const ds=d2s(d);
+    if(ds>end)break;
+    out.push(ds);
+    d=addDays(d,7);
+  }
+  return out;
+}
+function allPlanItems(){
+  const items=[];
+  S.tasks.forEach(t=>{
+    if(!t.dueDate)return;
+    if(isRepeatTask(t))return;   // 重复任务走下面的展开逻辑
+    items.push({ref:'task:'+t.id,kind:'study',id:t.id,stage:'',name:t.name,sub:courseName(t.courseId),color:courseColor(t.courseId),
+      dueDate:t.dueDate,estHours:t.estHours||4,done:!!t.done,progress:taskProgress(t),startDate:t.startDate||'',
+      subs:t.subtasks||[]});
+  });
+  S.tasks.forEach(t=>{
+    if(t.done||!isRepeatTask(t))return;
+    const wds=WEEKDAY_NAMES[t.repeat.weekday];
+    repeatDates(t).forEach(ds=>{
+      items.push({ref:'rpt:'+t.id+':'+ds,kind:'study',id:t.id,stage:'',rpt:true,name:t.name,sub:courseName(t.courseId),color:courseColor(t.courseId),
+        dueDate:ds,estHours:t.estHours||0.5,done:false,progress:0,startDate:ds,subs:[]});
+      const pd=d2s(addDays(s2d(ds),-1));   // 前一天：准备提醒
+      if(pd>=S.semester.start)items.push({ref:'rpt:'+t.id+':'+ds+':prep',kind:'study',id:t.id,stage:'',rpt:true,prep:true,
+        name:'准备：'+t.name,sub:courseName(t.courseId),color:courseColor(t.courseId),
+        dueDate:pd,estHours:t.estHours||0.5,done:false,progress:0,startDate:pd,subs:[]});
+    });
+  });
+  (S.projects||[]).forEach(p=>{
+    WORK_STAGES.forEach((s,i)=>{
+      const st=(p.stages&&p.stages[s.key])||{};
+      const prev=i>0?((p.stages&&p.stages[WORK_STAGES[i-1].key])||{}):null;
+      items.push({ref:'stage:'+p.id+':'+s.key,kind:'work',id:p.id,stage:s.key,pid:p.id,
+        name:p.name+' · '+s.label,sub:(p.brand?p.brand+' · ':'')+'小红书工作',color:WORK_COLOR,
+        dueDate:st.due||p.deliverDate,estHours:st.est||4,done:st.status===2,
+        progress:st.status===2?100:(st.status===1?(st.progress||50):0),
+        startDate:prev&&prev.due?prev.due:'',projectName:p.name});
+    });
+  });
+  return items;
+}
+function itemByRef(ref){return allPlanItems().find(x=>x.ref===ref)}
+/* 把某个条目的「未完成子任务」按天数摊到每一天：返回 { ds: [子任务...] }
+   摊法：剩余子任务条数 ÷ 剩余可用天数，向上取整错开分配（保证总量守恒、越往后越少） */
+function splitSubs(it,start,endDs){
+  const pend=(it.subs||[]).filter(s=>!s.done);
+  const out={};
+  if(!pend.length)return out;
+  const n=Math.max(1,daysBetween(start,endDs)+1);
+  // 用「累计应完成比例」决定第 i 天结束时该做完几条，差值就是当天分配的条数
+  let prevCut=0;
+  for(let i=0;i<n;i++){
+    const ds=d2s(addDays(s2d(start),i));
+    const cut=Math.round(pend.length*(i+1)/n);
+    out[ds]=pend.slice(prevCut,cut);
+    prevCut=cut;
+  }
+  return out;
+}
+/* 每日建议学习量（未完成的条目，从今天/开始日摊到截止日；带当天该做的子任务） */
+function dayPlan(){
+  const map={};const td=todayStr();
+  let limit=S.semester.end;
+  allPlanItems().forEach(it=>{if(it.dueDate>limit)limit=it.dueDate});
+  allPlanItems().forEach(it=>{
+    if(it.done)return;
+    let remain=it.estHours*(1-(it.progress||0)/100);
+    if(remain<=0)return;
+    if(!it.dueDate)return;
+    let start=(it.startDate&&it.startDate>td)?it.startDate:td;
+    if(daysBetween(start,it.dueDate)<0)start=it.dueDate; // 已过期：压到截止日
+    const n=Math.max(1,daysBetween(start,it.dueDate)+1);
+    let per=Math.round(remain/n*2)/2;
+    if(per<0.5)per=0.5;
+    // 子任务摊到每一天：没子任务时 subs 为空数组，待办仍按任务标题显示
+    const subMap=splitSubs(it,start,it.dueDate);
+    for(let i=0;i<n;i++){
+      const ds=d2s(addDays(s2d(start),i));
+      if(ds>limit)break;
+      const subs=(subMap[ds]||[]).map(s=>({id:s.id,name:s.name}));
+      (map[ds]=map[ds]||[]).push({ref:it.ref,kind:it.kind,hours:per,name:it.name,color:it.color,sub:it.sub,stage:it.stage,projectName:it.projectName||'',
+        subs,subTotal:(it.subs||[]).length});
+    }
+  });
+  return map;
+}
+function latestStart(t){
+  const per=S.settings.workPerDay||3;
+  const days=Math.ceil((t.estHours||4)/per);
+  return d2s(addDays(s2d(t.dueDate),-days+1));
+}
+
+/* ================= 渲染框架 ================= */
+const TABS=[['dash','<i class="ic" data-ic="chart"></i> 总览'],['plan','<i class="ic" data-ic="moon"></i> 规划'],['todo','<i class="ic" data-ic="bunny"></i> 待办'],['courses','<i class="ic" data-ic="cat"></i> 课程'],['work','<i class="ic" data-ic="camera"></i> 小红书工作'],['set','<i class="ic" data-ic="flower"></i> 设置']];
+let curTab='dash';
+function renderTabs(){
+  $('#tabs').innerHTML=TABS.map(([k,n])=>`<button class="${k===curTab?'on':''}" onclick="go('${k}')">${n}</button>`).join('');
+}
+function go(k){curTab=k;renderTabs();render()}
+function render(){
+  $('#hdr-sem').innerHTML=`${S.semester.name} · ${fmtMD(S.semester.start)} ~ ${fmtMD(S.semester.end)} · 今天第${teachWeek(todayStr())||'—'}教学周 · ${MODE==='server'?'<i class="ic" data-ic="cloud"></i> 数据已存 E 盘':'<i class="ic" data-ic="house"></i> 浏览器本地存储'}`;
+  const P={dash:renderDash,plan:renderPlan,todo:renderTodo,courses:renderCourses,work:renderWork,set:renderSet};
+  FX.mark();
+  try{(P[curTab]||renderDash)()}finally{FX.unmark()}
+  FX.enterView();
+}
+function ring(pct,size=64,color){
+  const r=(size-8)/2,c=2*Math.PI*r;
+  return`<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+  <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="#f7e2eb" stroke-width="7"/>
+  <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${color||'var(--accent)'}" stroke-width="7"
+    stroke-linecap="round" stroke-dasharray="${c*pct/100} ${c}" transform="rotate(-90 ${size/2} ${size/2})"/>
+  <text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle" font-size="${size/4.2}" font-weight="700" fill="var(--ink)">${pct}%</text></svg>`;
+}
+function courseColor(cid){const c=S.courses.find(x=>x.id===cid);return c?c.color:'#c9a2b4'}
+function courseName(cid){const c=S.courses.find(x=>x.id===cid);return c?c.name:'未分类'}
+
+/* ================= 总览 ================= */
+function renderDash(){
+  const dp=dayPlan(),td=todayStr();
+  const wkStart=d2s(addDays(s2d(td),-s2d(td).getDay()+ (s2d(td).getDay()===0?-6:1)));
+  let wkHours=0,wkRefs=new Set(),wkStudy=0,wkWork=0;
+  for(let i=0;i<7;i++){
+    const ds=d2s(addDays(s2d(wkStart),i));
+    (dp[ds]||[]).forEach(x=>{wkHours+=x.hours;wkRefs.add(x.ref);if(x.kind==='work')wkWork+=x.hours;else wkStudy+=x.hours});
+  }
+  const items=allPlanItems().filter(x=>!x.rpt);   // 重复任务的单次发生/准备条目不进统计（会撑爆完成数、误报逾期）
+  const doneN=items.filter(t=>t.done).length;
+  const upcoming=items.filter(t=>!t.done&&t.dueDate>=td).sort((a,b)=>a.dueDate<b.dueDate?-1:1).slice(0,6);
+  const overdue=items.filter(t=>!t.done&&t.dueDate<td);
+  const weekTodos=weekTodoStats(wkStart);
+  const projs=S.projects||[];
+  const actP=projs.filter(p=>projectProgress(p)<100).length;
+  const nextDeliver=projs.filter(p=>p.deliverDate>=td).sort((a,b)=>a.deliverDate<b.deliverDate?-1:1)[0];
+  const view=`
+  ${overdue.length?`<div class="tip" style="background:#fdeef2;border-color:#f7d4de;color:#c9566f"><i class="ic" data-ic="warn"></i> 有 <b>${overdue.length}</b> 个条目已过截止日期仍未完成：${overdue.slice(0,5).map(t=>esc(t.name)).join('、')}${overdue.length>5?' 等':''}。请到「规划」或「小红书工作」页处理。</div>`:''}
+  <div class="grid g4">
+    <div class="card stat"><div class="tile"><i class="ic" data-ic="calendar"></i></div><div><div class="big">${semesterProgress()}%</div><div class="sub">学期时间进度</div></div></div>
+    <div class="card stat"><div class="tile lilac"><i class="ic" data-ic="star4"></i></div><div><div class="big">${doneN}/${items.length}</div><div class="sub">全部条目完成数</div></div></div>
+    <div class="card stat"><div class="tile soft"><i class="ic" data-ic="moon"></i></div><div><div class="big">${wkHours?wkHours.toFixed(1):0}<span style="font-size:13px;color:var(--ink2)">h</span></div><div class="sub">本周建议投入 学习 ${wkStudy.toFixed(1)}h / 工作 ${wkWork.toFixed(1)}h</div></div></div>
+    <div class="card stat"><div class="tile soft"><i class="ic" data-ic="clock"></i></div><div><div class="big">${weekTodos.done}/${weekTodos.total}</div><div class="sub">本周待办完成情况</div></div></div>
+  </div>
+  <div class="grid g3" style="margin-top:16px">
+    <div class="card stat" style="border-left:4px solid ${WORK_COLOR}"><div><div class="big">${actP}</div><div class="sub">进行中工作 / 共 ${projs.length} 个</div></div></div>
+    <div class="card stat" style="border-left:4px solid ${WORK_COLOR}"><div><div class="big">${nextDeliver?fmtMD(nextDeliver.deliverDate):'—'}</div><div class="sub">${nextDeliver?'最近交稿：'+esc(nextDeliver.name).slice(0,10):'暂无待交付'}</div></div></div>
+    <div class="card stat" style="border-left:4px solid ${WORK_COLOR}"><div><div class="big">${wkWork.toFixed(1)}<span style="font-size:13px;color:var(--ink2)">h</span></div><div class="sub">本周工作投入 · 收入见「小红书工作」页</div></div></div>
+  </div>
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card">
+      <h2><i class="ic" data-ic="star"></i> 最近截止（学习 + 工作）</h2>
+      ${upcoming.length?upcoming.map(t=>{
+        const d=daysBetween(td,t.dueDate);
+        return`<div class="task-row">
+          <span class="prio-num ${d<=3?'late':d<=7?'near':''}" style="width:auto;padding:0 8px;font-size:12px">${d===0?'今天':d+'天'}</span>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><b>${esc(t.name)}</b>
+              ${t.kind==='work'?'<span class="tag pink"><i class="ic" data-ic="camera"></i> 工作</span>':`<span class="tag gray" style="color:${t.color}">${esc(t.sub)}</span>`}</div>
+            <div class="muted">${esc(t.sub)} · 截止 ${fmtMD(t.dueDate)} 周${wk(t.dueDate)} · 约 ${t.estHours}h</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:4px"><div class="bar-mini"><i style="width:${t.progress}%;background:${t.color}"></i></div><span class="muted">${t.progress}%</span></div>
+          </div>
+          <button class="chk ${t.done?'on':''}" onclick="toggleRef('${t.ref}')">${t.done?'✓':''}</button>
+        </div>`}).join(''):`<div class="empty">暂无未完成条目，太棒了 <i class="ic" data-ic="sparkle"></i></div>`}
+    </div>
+    <div class="card">
+      <h2><i class="ic" data-ic="cat"></i> 课程进度 & <i class="ic" data-ic="camera"></i> 工作进度</h2>
+      ${S.courses.length?S.courses.map(c=>{
+        const n=S.tasks.filter(t=>t.courseId===c.id).length,p=courseProgress(c.id);
+        return`<div class="task-row">
+          <i style="width:11px;height:11px;border-radius:3px;background:${c.color};flex:none"></i>
+          <div style="flex:1"><div><b>${esc(c.name)}</b> <span class="muted">${n} 个任务</span></div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:4px"><div class="bar-mini"><i style="width:${p}%;background:${c.color}"></i></div><span class="muted">${p}%</span></div></div>
+        </div>`}).join(''):`<div class="empty">还没有课程，去「课程」页添加 →</div>`}
+      ${projs.length?projs.map(p=>{
+        const pp=projectProgress(p);
+        return`<div class="task-row" style="cursor:pointer" onclick="go('work')">
+          <i style="width:11px;height:11px;border-radius:3px;background:${WORK_COLOR};flex:none"></i>
+          <div style="flex:1"><div><b>${esc(p.name)}</b> <span class="muted">交稿 ${fmtMD(p.deliverDate)}</span></div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:4px"><div class="bar-mini"><i style="width:${pp}%;background:${WORK_COLOR}"></i></div><span class="muted">${pp}%</span></div></div>
+        </div>`}).join(''):''}
+      <h2 style="margin-top:18px"><i class="ic" data-ic="heart"></i> 本周每日建议投入</h2>
+      <div style="display:flex;gap:8px;align-items:flex-end;height:90px;padding:0 4px">
+        ${[...Array(7)].map((_,i)=>{
+          const ds=d2s(addDays(s2d(wkStart),i));
+          const sg=dp[ds]||[];const h=sg.reduce((a,b)=>a+b.hours,0);
+          const hw=sg.filter(x=>x.kind==='work').reduce((a,b)=>a+b.hours,0);
+          const isT=ds===td;const mh=Math.max(2,...[...Array(7)].map((_,j)=>{const d2=d2s(addDays(s2d(wkStart),j));return(dp[d2]||[]).reduce((a,b)=>a+b.hours,0)}));
+          const hh=Math.max(4,h/mh*60);
+          return`<div style="flex:1;text-align:center;display:flex;flex-direction:column;justify-content:flex-end">
+            <div style="height:${hh}px;display:flex;flex-direction:column;justify-content:flex-end">
+              ${hw?`<div style="height:${hw/h*hh}px;background:${WORK_COLOR};opacity:.85;border-radius:6px 6px 0 0;margin:0 3px"></div>`:''}
+              <div style="height:${h-hw>0?hh-hw/h*hh:hh}px;background:${isT?'var(--accent)':'#f0c3d8'};border-radius:${hw?'0':'6px 6px 0 0'} 0 0;margin:0 3px"></div>
+            </div>
+            <div class="muted" style="margin-top:4px;font-size:11px;${isT?'color:var(--accent);font-weight:700':''}">${fmtMD(ds)}<br>${wk(ds)}</div></div>`
+        }).join('')}
+      </div>
+      <div class="legend"><span><i style="background:#9d8cd2"></i>学习</span><span><i style="background:${WORK_COLOR}"></i>工作</span></div>
+    </div>
+  </div>`;
+  $('#view').innerHTML=view;
+}
+function weekTodoStats(wkStart){
+  let total=0,done=0;
+  for(let i=0;i<7;i++){const ds=d2s(addDays(s2d(wkStart),i));(S.todos[ds]||[]).forEach(x=>{total++;if(x.done)done++})}
+  return{total,done};
+}
+function toggleTask(id){const t=S.tasks.find(x=>x.id===id);if(t){t.done=!t.done;save();render()}}
+
+/* ================= 课程页 ================= */
+function renderCourses(){
+  const view=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+    <h2 style="margin:0"><i class="ic" data-ic="cat"></i> 我的课程</h2>
+    <div style="display:flex;gap:8px">
+      <button class="btn ghost sm" onclick="imgParseModal()"><i class="ic" data-ic="image"></i> 粘贴图片识别</button>
+      <button class="btn ghost sm" onclick="aiParseModal()"><i class="ic" data-ic="wand"></i> AI 解析课程大纲</button>
+      <button class="btn sm" onclick="courseModal()">＋ 添加课程</button>
+    </div></div>
+  <div class="tip"><i class="ic" data-ic="bulb"></i> 流程：添加课程并粘贴大纲 → 点「AI 解析大纲」自动提取硬性任务（考试/作业/实验/报告等）→ 到「规划」页查看完成顺序 → 到「待办」页看每天做什么。也可以点「<b>粘贴图片识别</b>」，把教务系统截图、课程表照片、老师发的通知截图直接 Ctrl+V 丢进去，自动认出课程名称和任务。没有 AI 接口？把大纲发到 WorkBuddy 对话里，我解析后给你 JSON，用「导入任务 JSON」即可。</div>
+  <div class="grid g2">
+  ${S.courses.length?S.courses.map(c=>{
+    const ts=orderedTasks().filter(t=>t.courseId===c.id);const p=courseProgress(c.id);
+    return`<div class="card course-card" style="border-top-color:${c.color}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div><b style="font-size:15px">${esc(c.name)}</b>
+          <div class="muted">${esc(c.teacher||'')}${c.teacher?' · ':''}${esc(c.schedule||'时间待定')}</div></div>
+        <div style="display:flex;gap:6px">
+          <button class="btn ghost sm" onclick="taskModal(null,'${c.id}')">＋任务</button>
+          <button class="btn ghost sm" onclick="courseModal('${c.id}')">编辑</button>
+          <button class="btn danger sm" onclick="delCourse('${c.id}')">删除</button>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin:10px 0 4px">
+        <div class="pbar"><i style="width:${p}%;background:${c.color}"></i></div><b style="font-size:13px">${p}%</b>
+      </div>
+      <details ${ts.length?'':'open'}><summary>${ts.length} 个硬性任务（点击展开）</summary>
+        <div style="margin-top:6px">
+        ${ts.map(t=>taskRowHTML(t,true)).join('')||'<div class="muted" style="padding:8px 0">暂无任务</div>'}
+        </div>
+      </details>
+    </div>`}).join(''):`<div class="card empty" style="grid-column:1/-1">还没有课程。点击右上角「添加课程」或「AI 解析课程大纲」开始 →</div>`}
+  </div>`;
+  $('#view').innerHTML=view;
+}
+function taskRowHTML(t,inCourse){
+  const p=taskProgress(t);const late=!t.done&&t.dueDate<todayStr();
+  const rep=isRepeatTask(t)?t.repeat:null;
+  const wds=rep?'每周'+WEEKDAY_NAMES[rep.weekday].slice(1):'';   // 「周二」→「每周二」，别和 WEEKDAY_NAMES 的「周」前缀重复
+  return`<div class="task-row">
+    <button class="chk ${t.done?'on':''}" onclick="toggleTask('${t.id}');event.stopPropagation()">${t.done?'✓':''}</button>
+    <div style="flex:1;min-width:0;cursor:pointer" onclick="taskModal('${t.id}')">
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><b style="${late&&!t.done?'color:var(--danger)':''}">${esc(t.name)}</b>
+        ${rep?`<span class="tag pink">${wds}</span>`:''}
+        <span class="tag ${TYPE_COLOR[t.type]||'gray'}">${t.type||'任务'}</span>
+        ${t.weight?`<span class="tag gray">占比 ${t.weight}%</span>`:''}
+        ${!inCourse?`<span class="tag gray" style="color:${courseColor(t.courseId)}">${esc(courseName(t.courseId))}</span>`:''}
+      </div>
+      <div class="muted">${rep?`${wds}发生 · 持续到 ${fmtMD(t.dueDate)} · 每次约 ${t.estHours||0.5}h · 前一天出现「准备」待办`:`截止 ${fmtMD(t.dueDate)} 周${wk(t.dueDate)} · 第${teachWeek(t.dueDate)||'?'}教学周 · 约 ${t.estHours||'?'}h · 最晚 ${fmtMD(latestStart(t))} 开始`}</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:4px"><div class="bar-mini"><i style="width:${p}%;background:${courseColor(t.courseId)}"></i></div><span class="muted">${p}%${t.subtasks&&t.subtasks.length?` · 子任务 ${t.subtasks.filter(s=>s.done).length}/${t.subtasks.length}`:''}</span></div>
+    </div>
+    ${inCourse?`<button class="btn danger sm" onclick="delTask('${t.id}');event.stopPropagation()">删</button>`:''}
+  </div>`;
+}
+/* 通用条目行（学习 + 工作统一展示） */
+function planRowHTML(it){
+  const d=daysBetween(todayStr(),it.dueDate);
+  const late=!it.done&&d<0;
+  return`<div class="task-row">
+    <button class="chk ${it.done?'on':''}" onclick="toggleRef('${it.ref}')">${it.done?'✓':''}</button>
+    <div style="flex:1;min-width:0;cursor:pointer" onclick="${it.kind==='work'?`projectModal('${it.pid}')`:`taskModal('${it.id}')`}">
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><b style="${late?'color:var(--danger)':''}">${esc(it.name)}</b>
+        ${it.kind==='work'?'<span class="tag pink"><i class="ic" data-ic="camera"></i> 工作</span>':`<span class="tag gray" style="color:${it.color}">${esc(it.sub)}</span>`}
+      </div>
+      <div class="muted">${esc(it.sub)} · 截止 ${fmtMD(it.dueDate)} 周${wk(it.dueDate)}${late?' · 已逾期':' · 还有 '+d+' 天'} · 约 ${it.estHours}h</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:4px"><div class="bar-mini"><i style="width:${it.progress}%;background:${it.color}"></i></div><span class="muted">${it.progress}%</span></div>
+    </div>
+  </div>`;
+}
+function toggleRef(ref){
+  if(ref.indexOf('task:')===0){const t=S.tasks.find(x=>x.id===ref.slice(5));if(t){t.done=!t.done;save();render()}}
+  else if(ref.indexOf('stage:')===0){const[,pid,st]=ref.split(':');cycleStage(pid,st)}
+  else if(ref.indexOf('rpt:')===0){
+    // 重复任务的单次发生/准备条目：勾选 = 固化并勾掉当天的待办（不影响其他周）
+    const ds=ref.split(':')[2];const l=S.todos[ds]||(S.todos[ds]=[]);
+    const x=l.find(t=>t.source==='auto'&&t.ref===ref);
+    if(x)x.done=!x.done;
+    else{const it=itemByRef(ref);if(it)l.push({id:uid(),text:`${it.name}（${it.estHours}h）`,done:true,ref,kind:'study',source:'auto'})}
+    save();render();
+  }
+}
+
+/* ================= 规划页 ================= */
+function renderPlan(){
+  const ts=orderedTasks();const td=todayStr();
+  // 按月分组里程碑
+  const byMonth={};ts.forEach(t=>{(byMonth[monthName(t.dueDate)]=byMonth[monthName(t.dueDate)]||[]).push(t)});
+  const view=`
+  <h2><i class="ic" data-ic="moon"></i> 任务完成顺序建议</h2>
+  <div class="tip">排序规则：截止日期越早越靠前；有前置依赖的任务自动排到依赖之后。<b>「最晚开始」</b>= 按每天 ${S.settings.workPerDay}h 的投入，倒推出来的最迟启动日期，晚于它就要赶工了。</div>
+  ${ts.length?`<div class="card" style="padding:6px 18px"><table>
+    <tr><th>#</th><th>任务</th><th>课程</th><th>类型/占比</th><th>截止</th><th>教学周</th><th>工时</th><th>最晚开始</th><th>前置</th><th>进度</th></tr>
+    ${ts.map((t,i)=>{const d=daysBetween(td,t.dueDate);const late=!t.done&&t.dueDate<td;
+      return`<tr style="cursor:pointer" onclick="taskModal('${t.id}')">
+      <td><span class="prio-num ${late?'late':(!t.done&&d<=7)?'near':''}">${i+1}</span></td>
+      <td><b ${late?'style="color:var(--danger)"':''}>${esc(t.name)}</b>${isRepeatTask(t)?` <span class="tag pink">每周${WEEKDAY_NAMES[t.repeat.weekday].slice(1)}</span>`:''}${t.done?' <span class="tag green">已完成</span>':''}</td>
+      <td><span class="tag gray" style="color:${courseColor(t.courseId)}">${esc(courseName(t.courseId))}</span></td>
+      <td><span class="tag ${TYPE_COLOR[t.type]||'gray'}">${t.type||'-'}</span>${t.weight?` ${t.weight}%`:''}</td>
+      <td>${isRepeatTask(t)?`每周${WEEKDAY_NAMES[t.repeat.weekday].slice(1)} · 到 ${fmtMD(t.dueDate)}`:`${fmtMD(t.dueDate)} 周${wk(t.dueDate)}`}</td>
+      <td>第${teachWeek(t.dueDate)||'?'}周</td>
+      <td>${t.estHours||'-'}h</td>
+      <td>${isRepeatTask(t)?'—':fmtMD(latestStart(t))}</td>
+      <td class="muted">${(t.dependencies||[]).map(id=>{const p=S.tasks.find(x=>x.id===id);return p?esc(p.name):''}).join('、')||'—'}</td>
+      <td style="min-width:110px"><div style="display:flex;align-items:center;gap:6px"><div class="bar-mini"><i style="width:${taskProgress(t)}%;background:${courseColor(t.courseId)}"></i></div><span class="muted">${taskProgress(t)}%</span></div></td>
+    </tr>`}).join('')}
+  </table></div>`:`<div class="card empty">暂无任务，先到「课程」页添加课程和任务 →</div>`}
+  <h2><i class="ic" data-ic="calendar"></i> 时间线视图 <span class="muted">甘特图：整学期时间轴 · 红线=今天 · 圆点=工作四阶段</span></h2>
+  ${ganttHTML()}
+  <h2><i class="ic" data-ic="calendar"></i> 学期时期规划（按月）</h2>
+  <div class="grid g2">
+  ${Object.keys(byMonth).length?Object.entries(byMonth).map(([m,list])=>`
+    <div class="card"><h2 style="margin-top:0">${m} <span class="muted">（${list.length} 项）</span></h2>
+      ${list.map(t=>`<div class="milestone" style="border-left-color:${courseColor(t.courseId)}">
+        <div style="display:flex;justify-content:space-between;gap:8px">
+          <div><b>${esc(t.name)}</b> <span class="tag ${TYPE_COLOR[t.type]||'gray'}">${t.type||''}</span></div>
+          <span class="muted" style="white-space:nowrap">${fmtMD(t.dueDate)} · 第${teachWeek(t.dueDate)||'?'}周</span>
+        </div>
+        ${t.notes?`<div class="muted" style="margin-top:3px">${esc(t.notes)}</div>`:''}
+      </div>`).join('')}
+    </div>`).join(''):`<div class="card empty" style="grid-column:1/-1">暂无数据</div>`}
+  </div>
+  <h2><i class="ic" data-ic="camera"></i> 小红书工作排期（四阶段）</h2>
+  ${(S.projects||[]).length?`<div class="card" style="padding:6px 18px"><table>
+    <tr><th>项目</th><th>类型</th><th>交稿</th><th><i class="ic" data-ic="pen"></i> 写脚本</th><th><i class="ic" data-ic="camera"></i> 拍摄</th><th><i class="ic" data-ic="scissors"></i> 剪辑</th><th><i class="ic" data-ic="send"></i> 发布</th><th>报价</th><th>进度</th></tr>
+    ${(S.projects||[]).slice().sort((a,b)=>a.deliverDate<b.deliverDate?-1:1).map(p=>{
+      const cell=(key)=>{const st=(p.stages&&p.stages[key])||{};const late=st.status!==2&&st.due&&st.due<todayStr();
+        return `<td style="${late?'color:var(--danger);font-weight:600':''}">${st.due?fmtMD(st.due):'—'}${st.status===2?' ✓':st.status===1?' ●':''} <span class="muted">${st.est||4}h</span></td>`};
+      return`<tr style="cursor:pointer" onclick="go('work')">
+        <td><b>${esc(p.name)}</b></td>
+        <td><span class="tag pink">${esc(p.type||'其他')}</span></td>
+        <td>${fmtMD(p.deliverDate)} 周${wk(p.deliverDate)}</td>
+        ${cell('script')}${cell('shoot')}${cell('edit')}${cell('publish')}
+        <td>${p.fee?'¥'+p.fee:'—'}</td>
+        <td style="min-width:100px"><div style="display:flex;align-items:center;gap:6px"><div class="bar-mini"><i style="width:${projectProgress(p)}%;background:${WORK_COLOR}"></i></div><span class="muted">${projectProgress(p)}%</span></div></td>
+      </tr>`}).join('')}
+  </table>
+  <div class="muted" style="padding:8px 0">✓ 已完成 · ● 进行中 · 红色=计划日已过但仍未完成</div></div>`
+  :`<div class="card empty">还没有工作项目，去「小红书工作」页新增或导入 →</div>`}`;
+  $('#view').innerHTML=view;
+}
+
+/* ================= 待办页 ================= */
+let todoMode='day',todoDate=todayStr(),todoWkStart=null,todoMon=null;
+function weekStartOf(ds){const d=s2d(ds);const off=(d.getDay()===0?-6:d.getDay()-1);return d2s(addDays(d,-off))}
+/* anim=false 时跳过入场动画：勾选/删除待办只做原地更新，
+   否则整块重播动画会被打断，停在半透明的「灰掉」状态 */
+function renderTodo(anim){
+  todoDate=todoDate||todayStr();
+  const dp=dayPlan();
+  const view=`<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+    <div style="display:flex;gap:12px;align-items:center">
+      <div class="seg">
+        <button class="${todoMode==='day'?'on':''}" onclick="todoMode='day';renderTodo()">每日</button>
+        <button class="${todoMode==='week'?'on':''}" onclick="todoMode='week';renderTodo()">每周</button>
+        <button class="${todoMode==='month'?'on':''}" onclick="todoMode='month';renderTodo()">每月</button>
+      </div>
+      <div class="seg">
+        <button class="${todoFilter==='all'?'on':''}" onclick="todoFilter='all';renderTodo()">全部</button>
+        <button class="${todoFilter==='study'?'on':''}" onclick="todoFilter='study';renderTodo()"><i class="ic" data-ic="cat"></i> 学习</button>
+        <button class="${todoFilter==='work'?'on':''}" onclick="todoFilter='work';renderTodo()"><i class="ic" data-ic="camera"></i> 工作</button>
+      </div>
+      <input type="date" style="width:auto" value="${todoMode==='day'?todoDate:todoMode==='week'?(todoWkStart=todoWkStart||weekStartOf(todoDate),todoWkStart):(todoMon=todoMon||todoDate.slice(0,7)+'-01',todoMon)}" onchange="todoDateChange(this.value)">
+    </div>
+    <button class="btn sm" onclick="addTodoModal()">＋ 自定义待办</button>
+  </div>
+  <div id="todo-body"></div>`;
+  $('#view').innerHTML=view;
+  if(todoMode==='day')renderDay();
+  else if(todoMode==='week')renderWeek();
+  else renderMonth();
+  if(anim!==false&&!FX.busy)FX.enterInto('#todo-body');
+}
+function todoDateChange(v){
+  if(todoMode==='day')todoDate=v||todayStr();
+  else if(todoMode==='week')todoWkStart=weekStartOf(v||todayStr());
+  else todoMon=(v||todayStr()).slice(0,7)+'-01';
+  renderTodo(false);
+}
+function todoList(ds){return S.todos[ds]||[]}
+let DP={};
+let todoFilter='all'; // all | study | work
+function computeDP(){DP=dayPlan()}
+function dpSug(ds){return DP[ds]||[]}
+function passFilter(kind){return todoFilter==='all'||todoFilter===(kind||'study')}
+function stageLabel(key){const s=WORK_STAGES.find(x=>x.key===key);return s?s.label:key}
+/* 找到某条待办对应的父任务（学习任务才有），用于子任务勾选联动 */
+function taskOfRef(ref){
+  if(!ref||ref.indexOf('task:')!==0)return null;
+  return S.tasks.find(t=>t.id===ref.slice(5))||null;
+}
+/* 勾选待办。条目可能是「任务标题」也可能是一条「子任务」（带 subId）。
+   勾子任务 ⇒ 写回父任务的 subtasks[i].done，任务进度随之自动推进。 */
+function toggleTodo(ds,id){
+  const x=todoList(ds).find(t=>t.id===id);
+  if(!x)return;
+  x.done=!x.done;
+  if(x.subId){
+    const t=taskOfRef(x.ref);
+    const st=t&&(t.subtasks||[]).find(s=>s.id===x.subId);
+    if(st)st.done=x.done;
+    // 子任务全做完 ⇒ 父任务自动收尾；反之撤销完成态
+    if(t&&t.subtasks&&t.subtasks.length){
+      if(t.subtasks.every(s=>s.done))t.done=true;
+      else if(t.done)t.done=false;
+    }
+  }else if(x.done&&x.ref&&x.ref.indexOf('task:')===0){
+    // 勾选整条任务 ⇒ 它的子任务一并标记完成
+    const t=taskOfRef(x.ref);
+    if(t&&t.subtasks)t.subtasks.forEach(s=>s.done=true);
+  }
+  save();renderTodo(false);
+}
+/* 删除：任务级删除记进 dismissed[ds] 防止自动加回；子任务级删除记进 dismissedSub[ds] */
+function delTodo(ds,id){
+  const x=todoList(ds).find(t=>t.id===id);
+  if(x&&x.source==='auto'&&x.ref){
+    if(!S.dismissed)S.dismissed={};
+    const d=S.dismissed[ds]||(S.dismissed[ds]=[]);
+    if(x.subId){
+      // 只移掉这一条子任务，任务其他子任务照常出现
+      const key=x.ref+'#'+x.subId;
+      if(d.indexOf(key)<0)d.push(key);
+      toast('已从今天移除这一条（其他子任务不受影响）');
+    }else{
+      if(d.indexOf(x.ref)<0)d.push(x.ref);
+      toast('已从今天移除（任务本身还在，其他天不受影响）');
+    }
+  }
+  S.todos[ds]=todoList(ds).filter(t=>t.id!==id);
+  if(!S.todos[ds].length)delete S.todos[ds];
+  save();renderTodo(false);
+}
+/* 把当天建议固化成待办条目。同一任务会拆成多条：
+   有子任务 ⇒ 每条子任务一个条目（带 subId）；没子任务 ⇒ 沿用任务标题。 */
+function matSug(ds){
+  const sug=dpSug(ds).filter(s=>passFilter(s.kind));
+  if(!sug.length)return;
+  const l=S.todos[ds]||(S.todos[ds]=[]);
+  const dis=S.dismissed&&S.dismissed[ds]?S.dismissed[ds]:[]; // 当天被用户删掉的，不再自动加回
+  let changed=false;
+  sug.forEach(s=>{
+    const subs=s.subs||[];
+    if(subs.length){
+      subs.forEach(sub=>{
+        const key=s.ref+'#'+sub.id;
+        if(dis.indexOf(key)>=0)return;
+        if(!l.find(x=>x.source==='auto'&&x.subId===sub.id)){   // 用 subId 去重，支持同一任务多条
+          l.push({id:uid(),text:sub.name,done:!!itemSubDone(s.ref,sub.id),ref:s.ref,subId:sub.id,kind:s.kind,source:'auto'});
+          changed=true;
+        }
+      });
+    }else{
+      if(dis.indexOf(s.ref)>=0)return;
+      if(!l.find(x=>x.source==='auto'&&x.ref===s.ref&&!x.subId)){
+        l.push({id:uid(),text:`${s.name}（${s.hours}h）`,done:false,ref:s.ref,kind:s.kind,source:'auto'});
+        changed=true;
+      }
+    }
+  });
+  if(changed)save();
+}
+/* 读父任务里某条子任务的完成态（渲染前对齐） */
+function itemSubDone(ref,subId){
+  const t=taskOfRef(ref);if(!t)return false;
+  const st=(t.subtasks||[]).find(s=>s.id===subId);
+  return !!(st&&st.done);
+}
+/* 一键把「今天这几条」子任务全部标记完成（父任务进度随之推进） */
+function doneAllSubs(ds,ref){
+  const kids=todoList(ds).filter(x=>x.ref===ref&&x.subId);
+  if(!kids.length)return;
+  kids.forEach(x=>x.done=true);
+  const t=taskOfRef(ref);
+  if(t){
+    kids.forEach(x=>{const st=(t.subtasks||[]).find(s=>s.id===x.subId);if(st)st.done=true});
+    if(t.subtasks&&t.subtasks.length&&t.subtasks.every(s=>s.done))t.done=true;
+  }
+  save();renderTodo(false);
+  toast('今天这几条已全部完成');
+}
+function todoItemHTML(ds,x,compact){
+  const item=x.ref?itemByRef(x.ref):null;
+  return`<div class="todo-item ${x.done?'done':''}" style="${compact?'margin:6px 0 0;padding:7px 10px':''}">
+    <button class="chk ${x.done?'on':''}" onclick="toggleTodo('${ds}','${x.id}')">${x.done?'✓':''}</button>
+    <div class="t" style="${compact?'font-size:13px':''}">${esc(x.text)}
+      ${x.subId?'':((x.kind==='work')?`<span class="tag pink"><i class="ic" data-ic="camera"></i> 工作</span>`:(item?`<span class="tag gray" style="color:${item.color}">${esc(item.sub)}</span>`:((x.kind||'study')==='study'?'<span class="tag gray">学习</span>':'')))}
+    </div>
+    ${!x.subId&&item&&item.kind==='work'?`<span class="muted" style="white-space:nowrap">阶段 ${stageLabel(item.stage)}</span>`:''}
+    <button class="btn danger sm" onclick="delTodo('${ds}','${x.id}')">删</button>
+  </div>`;
+}
+/* 把当天的待办按「任务」聚成组：父任务一行（含进度/工时）+ 子任务若干行。
+   没有子任务的条目单独成组，仍显示任务标题。顺序沿用 dpSug，保证与建议一致。 */
+function groupTodos(ds){
+  const list=todoList(ds).filter(x=>passFilter(x.kind||'study'));
+  const sug=dpSug(ds);
+  const groups=[],seen={};
+  const push=ref=>{
+    if(seen[ref])return;
+    seen[ref]=true;
+    const kids=list.filter(x=>x.ref===ref);
+    if(!kids.length)return;
+    const kidsBySub=kids.filter(x=>x.subId);
+    // 有子任务条目 ⇒ 父行只做标题，子任务逐条列；否则父行本身就是可勾选的一条
+    const task=kids.find(x=>!x.subId);
+    groups.push({ref,kids,kidsBySub,task,kid:kids[0]});
+  };
+  sug.forEach(s=>push(s.ref));
+  list.forEach(x=>push(x.ref)); // 兜底：建议里没有但待办里存在的
+  return groups;
+}
+function renderDay(){
+  computeDP();
+  matSug(todoDate);
+  const groups=groupTodos(todoDate);
+  const sug=dpSug(todoDate);
+  const hStudy=sug.filter(s=>s.kind==='study').reduce((a,b)=>a+b.hours,0);
+  const hWork=sug.filter(s=>s.kind==='work').reduce((a,b)=>a+b.hours,0);
+  // 完成计数：有子任务的按子任务条数算，没有的按条目算
+  let doneN=0,totalN=0;
+  groups.forEach(g=>{
+    const rows=g.kidsBySub.length?g.kidsBySub:[g.task].filter(Boolean);
+    rows.forEach(x=>{totalN++;if(x.done)doneN++});
+  });
+  const body=groups.map(g=>{
+    const first=g.kid;
+    const item=first.ref?itemByRef(first.ref):null;
+    if(!g.kidsBySub.length){
+      // 没有子任务：单行显示（勾选整条任务）
+      return todoItemHTML(todoDate,g.task||first);
+    }
+    const task=taskOfRef(g.ref);
+    const p=item?item.progress:0;
+    const color=(item&&item.color)||'#9d8cd2';
+    const dn=g.kidsBySub.filter(x=>x.done).length;
+    const subAll=(task&&task.subtasks)||[];
+    const pendSub=subAll.filter(s=>!s.done).length;          // 整个任务还没做完的子任务
+    const restDays=pendSub-g.kidsBySub.filter(x=>!x.done).length; // 除今天外还排在后面的条数
+    const allDone=dn===g.kidsBySub.length;
+    return`<div class="task-group">
+      <div class="tg-head">
+        <span class="tg-dot" style="background:${color}"></span>
+        <b>${esc(item?item.name:first.text.replace(/（[\d.]+h）$/,''))}</b>
+        ${item?`<span class="tag gray" style="color:${color}">${esc(item.sub)}</span>`:''}
+        <span class="muted" style="margin-left:auto;white-space:nowrap">今天 ${dn}/${g.kidsBySub.length} 条 · 总进度 ${p}%</span>
+        <button class="btn ghost sm" style="flex:none" title="把今天这几条一次性标记完成" onclick="doneAllSubs('${todoDate}','${g.ref}')" ${allDone?'disabled':''}>今天全做完</button>
+      </div>
+      <div class="tg-subs">
+        ${g.kidsBySub.map(x=>`<div class="todo-item sub ${x.done?'done':''}">
+          <button class="chk ${x.done?'on':''}" onclick="toggleTodo('${todoDate}','${x.id}')">${x.done?'✓':''}</button>
+          <div class="t">${esc(x.text)}</div>
+          <button class="btn danger sm" onclick="delTodo('${todoDate}','${x.id}')">删</button>
+        </div>`).join('')}
+        ${g.kids.filter(x=>!x.subId).map(x=>todoItemHTML(todoDate,x)).join('')}
+      </div>
+      ${restDays>0?`<div class="muted tg-more">这个任务还有 ${restDays} 条子任务排在后面几天，跟着截止日期自动往前推</div>`:''}
+    </div>`;
+  }).join('');
+  const html=`<div class="card">
+    <h2 style="margin-top:0"><i class="ic" data-ic="calendar"></i> ${fmtMD(todoDate)} 周${wk(todoDate)} <span class="muted">第${teachWeek(todoDate)||'—'}教学周 · 完成 ${doneN}/${totalN}</span></h2>
+    <div class="legend">
+      <span><i style="background:#9d8cd2"></i>学习 ${hStudy.toFixed(1)}h</span>
+      <span><i style="background:${WORK_COLOR}"></i>工作 ${hWork.toFixed(1)}h</span>
+      <b>合计 ${(hStudy+hWork).toFixed(1)}h</b>
+    </div>
+    ${groups.length?body:`<div class="empty">今天没有安排的任务 <i class="ic" data-ic="cup"></i><br><span class="muted">任务会按截止日期自动分配到每天，也可以点右上角手动添加</span></div>`}
+  </div>`;
+  $('#todo-body').innerHTML=html;
+}
+function renderWeek(){
+  computeDP();
+  const ws=todoWkStart||weekStartOf(todayStr());
+  const days=[...Array(7)].map((_,i)=>d2s(addDays(s2d(ws),i)));
+  // 本周应处理的条目（建议 + 截止在本周），学习与工作统一
+  const allItems=allPlanItems();
+  const dueInWeek=allItems.filter(t=>!t.done&&t.dueDate>=days[0]&&t.dueDate<=days[6]).sort((a,b)=>a.dueDate<b.dueDate?-1:1);
+  let sugRefs=new Set();days.forEach(ds=>dpSug(ds).forEach(s=>sugRefs.add(s.ref)));
+  const sugItems=allItems.filter(t=>!t.done&&sugRefs.has(t.ref)&&!dueInWeek.find(x=>x.ref===t.ref));
+  let total=0,done=0;days.forEach(ds=>todoList(ds).forEach(x=>{if(passFilter(x.kind)){total++;if(x.done)done++}}));
+  const html=`<div class="grid" style="grid-template-columns:1.4fr 1fr">
+  <div class="card">
+    <h2 style="margin-top:0"><i class="ic" data-ic="calendar"></i> ${fmtMD(days[0])} ~ ${fmtMD(days[6])} <span class="muted">第${teachWeek(days[0])||'—'}教学周 · 待办完成 ${done}/${total}</span></h2>
+    ${days.map(ds=>{
+      const l=todoList(ds).filter(x=>passFilter(x.kind||'study'));
+      const sg=dpSug(ds);const h=sg.reduce((a,b)=>a+b.hours,0);
+      const hs=sg.filter(s=>s.kind==='study').reduce((a,b)=>a+b.hours,0);
+      const hw=sg.filter(s=>s.kind==='work').reduce((a,b)=>a+b.hours,0);
+      return`<div style="margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <b style="${ds===todayStr()?'color:var(--accent)':''}">${fmtMD(ds)} 周${wk(ds)}${ds===todayStr()?' · 今天':''}</b>
+          ${h?`<span class="muted">建议 ${h.toFixed(1)}h${hw?`（学习 ${hs.toFixed(1)} / 工作 ${hw.toFixed(1)}）`:''}</span>`:'<span class="muted">无安排</span>'}
+        </div>
+        ${l.length?l.map(x=>x.subId
+            ?`<div class="todo-item sub ${x.done?'done':''}" style="margin:5px 0 0 14px;padding:6px 10px">
+                <button class="chk ${x.done?'on':''}" onclick="toggleTodo('${ds}','${x.id}')">${x.done?'✓':''}</button>
+                <div class="t" style="font-size:12.5px">${esc(x.text)}</div>
+                <button class="btn danger sm" onclick="delTodo('${ds}','${x.id}')">删</button>
+              </div>`
+            :todoItemHTML(ds,x,true)).join(''):'<div class="muted" style="padding:4px 0 0 2px">—</div>'}
+      </div>`}).join('')}
+  </div>
+  <div>
+    <div class="card" style="margin-bottom:16px">
+      <h2 style="margin-top:0"><i class="ic" data-ic="clock"></i> 本周截止</h2>
+      ${dueInWeek.length?dueInWeek.map(t=>planRowHTML(t)).join(''):'<div class="muted">本周没有任务截止</div>'}
+    </div>
+    <div class="card">
+      <h2 style="margin-top:0"><i class="ic" data-ic="star4"></i> 本周建议推进（未到截止）</h2>
+      ${sugItems.length?sugItems.map(t=>{
+        const hrs=days.reduce((a,ds)=>a+dpSug(ds).filter(s=>s.ref===t.ref).reduce((x,y)=>x+y.hours,0),0);
+        return`<div class="task-row"><div style="flex:1;min-width:0;cursor:pointer" onclick="${t.kind==='work'?`projectModal('${t.pid}')`:`taskModal('${t.id}')`}">
+          <b>${esc(t.name)}</b>${t.kind==='work'?' <span class="tag pink">工作</span>':''}
+          <div class="muted">${esc(t.sub)} · 截止 ${fmtMD(t.dueDate)} · 本周建议投入 ${hrs.toFixed(1)}h</div></div>
+          <div class="bar-mini" style="max-width:80px"><i style="width:${t.progress}%;background:${t.color}"></i></div>
+        </div>`}).join(''):'<div class="muted">无</div>'}
+    </div>
+  </div></div>`;
+  $('#todo-body').innerHTML=html;
+}
+function renderMonth(){
+  const mon=todoMon||todayStr().slice(0,7);
+  const [y,m]=mon.split('-').map(Number);
+  const first=`${y}-${pad(m)}-01`,last=d2s(new Date(y,m,0));
+  const ts=allPlanItems().filter(t=>!t.prep&&t.dueDate>=first&&t.dueDate<=last).sort((a,b)=>a.dueDate<b.dueDate?-1:1);
+  const doneTs=ts.filter(t=>t.done).length;
+  const dp=dayPlan();
+  let hrs=0,hWork=0;for(let d=1;d<=new Date(y,m,0).getDate();d++){const ds=`${y}-${pad(m)}-${pad(d)}`;(dp[ds]||[]).forEach(x=>{hrs+=x.hours;if(x.kind==='work')hWork+=x.hours})}
+  const html=`<div class="grid g2">
+    <div class="card"><h2 style="margin-top:0"><i class="ic" data-ic="calendar"></i> ${y} 年 ${m} 月里程碑 <span class="muted">完成 ${doneTs}/${ts.length}</span></h2>
+      ${ts.length?ts.map(t=>`<div class="milestone" style="border-left-color:${t.color};${t.done?'opacity:.55':''}">
+        <div style="display:flex;justify-content:space-between;gap:8px"><div><b>${esc(t.name)}</b> ${t.kind==='work'?'<span class="tag pink">工作</span>':`<span class="tag gray">${esc(t.sub)}</span>`}${t.rpt?'<span class="tag pink">每周</span>':''}</div>
+        <span class="muted">${fmtMD(t.dueDate)} 周${wk(t.dueDate)}${t.rpt?'':' · '+t.progress+'%'}</span></div></div>`).join(''):'<div class="muted">本月无任务截止</div>'}
+    </div>
+    <div class="card">
+      <h2 style="margin-top:0"><i class="ic" data-ic="chart"></i> 本月负荷</h2>
+      <div class="stat" style="margin-bottom:14px"><div><div class="big">${hrs.toFixed(1)}h</div><div class="sub">本月建议总投入（学习 ${(hrs-hWork).toFixed(1)}h / 工作 ${hWork.toFixed(1)}h）</div></div></div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px">
+        ${[...Array(new Date(y,m,0).getDate())].map((_,i)=>{
+          const ds=`${y}-${pad(m)}-${pad(i+1)}`;const h=(dp[ds]||[]).reduce((a,b)=>a+b.hours,0);
+          const lv=h===0?0:h<=1?1:h<=2?2:h<=3.5?3:4;
+          const bg=['#f9edf3','#f3d3e3','#eab0cf','#e089b9','#d15c8f'][lv];
+          return`<div title="${ds}：${h.toFixed(1)}h" style="width:22px;height:22px;border-radius:5px;background:${bg};display:flex;align-items:center;justify-content:center;font-size:9px;color:${lv>=3?'#fff':'var(--ink2)'}">${i+1}</div>`
+        }).join('')}
+      </div>
+      <div class="muted" style="margin-top:10px">颜色越深 = 当天建议学习量越大。悬停可查看具体小时数。</div>
+    </div>
+  </div>`;
+  $('#todo-body').innerHTML=html;
+}
+
+/* ================= 小红书工作 ================= */
+function incomeOfProject(pid){return (S.income||[]).filter(x=>x.projectId===pid).reduce((a,b)=>a+(+b.amount||0),0)}
+function projectProgress(p){
+  const st=WORK_STAGES.map(s=>(p.stages&&p.stages[s.key])||{});
+  const done=st.filter(x=>x.status===2).length;
+  const active=st.filter(x=>x.status===1).length;
+  return Math.round(100*(done+active*0.5)/4);
+}
+function stagePlan(startStr,deliverStr){
+  const weights=[0.15,0.45,0.78,1];
+  const span=Math.max(1,daysBetween(startStr,deliverStr));
+  const out={};
+  WORK_STAGES.forEach((s,i)=>{out[s.key]={est:[2,3,3,2][i],due:d2s(addDays(s2d(startStr),Math.round(span*weights[i]))),status:0,progress:0}});
+  return out;
+}
+function cycleStage(pid,key){
+  const p=(S.projects||[]).find(x=>x.id===pid);if(!p)return;
+  const st=p.stages[key]||(p.stages[key]={est:4,due:'',status:0,progress:0});
+  st.status=st.status===0?1:(st.status===1?2:0);
+  if(st.status===2)st.progress=100;else if(st.status===1)st.progress=st.progress||50;else st.progress=0;
+  save();
+  if(window.__justStage==='1'){} // 保留扩展位
+  render();
+}
+function projectCard(p){
+  const today=todayStr();
+  const d=daysBetween(today,p.deliverDate);
+  const paid=incomeOfProject(p.id);
+  const pp=projectProgress(p);
+  const steps=WORK_STAGES.map((s,i)=>{
+    const st=(p.stages&&p.stages[s.key])||{};
+    const cls=st.status===2?'done':(st.status===1?'active':'');
+    const late=st.status!==2&&st.due&&st.due<today;
+    return`<div class="stage ${cls}">
+      <div class="stage-dot" onclick="cycleStage('${p.id}','${s.key}')" title="点击切换：未开始 → 进行中 → 已完成">${st.status===2?'✓':s.icon}</div>
+      <div class="stage-label">${s.label}</div>
+      <div class="stage-meta ${late?'late':''}">${st.due?fmtMD(st.due):'—'} · ${st.est||4}h</div>
+    </div>${i<3?'<div class="stage-line"></div>':''}`;
+  }).join('');
+  return`<div class="card" style="border-top:4px solid ${WORK_COLOR}">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">
+      <div style="min-width:0">
+        <b style="font-size:15px">${esc(p.name)}</b>
+        <div class="muted">${esc(p.brand||'个人项目')} · ${esc(p.type||'其他')} · 交稿 ${fmtMD(p.deliverDate)} 周${wk(p.deliverDate)}
+          <b style="${d<0?'color:var(--danger)':d<=3?'color:var(--warn)':''}">${d<0?'已逾期 '+(-d)+' 天':d===0?'今天交稿':'还剩 '+d+' 天'}</b></div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn ghost sm" onclick="incomeModal('${p.id}')"><i class="ic" data-ic="coin"></i> 记收入</button>
+        <button class="btn ghost sm" onclick="projectModal('${p.id}')">编辑</button>
+        <button class="btn danger sm" onclick="delProject('${p.id}')">删除</button>
+      </div>
+    </div>
+    <div class="stepper">${steps}</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-top:10px">
+      <div class="pbar"><i style="width:${pp}%;background:${WORK_COLOR}"></i></div>
+      <b style="font-size:13px;white-space:nowrap">${pp}%</b>
+      <span class="muted" style="white-space:nowrap">${p.fee?`报价 ¥${p.fee} · 已收 ¥${paid}`:''}</span>
+    </div>
+    ${p.notes?`<div class="muted" style="margin-top:8px"><i class="ic" data-ic="pen"></i> ${esc(p.notes)}</div>`:''}
+  </div>`;
+}
+function renderWork(){
+  const ps=(S.projects||[]).slice().sort((a,b)=>a.deliverDate<b.deliverDate?-1:1);
+  const act=ps.filter(p=>projectProgress(p)<100).length;
+  const upcoming=ps.filter(p=>p.deliverDate>=todayStr()).slice(0,1)[0];
+  $('#view').innerHTML=`
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+    <h2 style="margin:0"><i class="ic" data-ic="camera"></i> 小红书工作</h2>
+    <div style="display:flex;gap:8px">
+      <button class="btn ghost sm" onclick="importWorkModal()"><i class="ic" data-ic="tray"></i> 导入工作任务</button>
+      <button class="btn sm" onclick="projectModal()">＋ 新增工作项目</button>
+    </div>
+  </div>
+  <div class="grid g3" style="margin-bottom:16px">
+    <div class="card stat"><div><div class="big">${act}</div><div class="sub">进行中项目 / 共 ${ps.length} 个</div></div></div>
+    <div class="card stat"><div><div class="big">${upcoming?fmtMD(upcoming.deliverDate):'—'}</div><div class="sub">最近交稿${upcoming?'：'+esc(upcoming.name):'（暂无待交付）'}</div></div></div>
+    <div class="card stat"><div><div class="big" style="color:#c25d8a">¥${totalIncome().toLocaleString()}</div><div class="sub">累计收入 · 待收 ¥${receivable().toLocaleString()}</div></div></div>
+  </div>
+  <div class="tip">四步流程：<b>写脚本 → 拍摄 → 剪辑 → 发布</b>。点阶段圆圈切换状态（未开始 → 进行中 → 已完成），每个阶段会自动折算成工时，和学习任务一起排进「待办」页。</div>
+  <div class="grid g2">
+  ${ps.map(projectCard).join('')||'<div class="card empty" style="grid-column:1/-1">还没有工作项目，点右上角新增或导入 →</div>'}
+  </div>
+  <div style="margin-top:28px;border-top:2px dashed var(--line)"></div>
+  <div id="income-sec" style="margin-top:18px"></div>`;
+  renderIncomeSection();
+}
+function projectModal(id){
+  const p=id?(S.projects||[]).find(x=>x.id===id):null;
+  const today=todayStr();
+  const def={name:'',brand:'',type:'其他',startDate:today,deliverDate:d2s(addDays(s2d(today),14)),fee:0,notes:''};
+  const cur=Object.assign(def,p||{},{stages:(p&&p.stages)||stagePlan(p?p.startDate:today,p?p.deliverDate:d2s(addDays(s2d(today),14)))});
+  openModal(`<h3>${p?'编辑工作项目':'新增工作项目'}</h3>
+  <div class="row"><div><label>项目名称 *</label><input id="w-name" value="${esc(cur.name)}" placeholder="例如：xx品牌广告拍摄"></div>
+  <div><label>品牌 / 客户</label><input id="w-brand" value="${esc(cur.brand||'')}"></div></div>
+  <div class="row"><div><label>类型</label><select id="w-type">${WORK_TYPES.map(x=>`<option ${cur.type===x?'selected':''}>${x}</option>`).join('')}</select></div>
+  <div><label>报价金额（元）</label><input type="number" id="w-fee" min="0" value="${cur.fee||0}"></div></div>
+  <div class="row"><div><label>接到需求日</label><input type="date" id="w-start" value="${cur.startDate}"></div>
+  <div><label>交稿截止日 *</label><input type="date" id="w-deliver" value="${cur.deliverDate}"></div></div>
+  <label>四阶段计划（预估工时 / 计划完成日）</label>
+  ${WORK_STAGES.map(s=>{const st=cur.stages[s.key]||{est:4,due:''};return`<div class="row" style="align-items:center;margin-bottom:4px">
+    <div style="flex:0 0 90px"><b style="font-size:13px">${s.icon} ${s.label}</b></div>
+    <div><input type="number" id="w-est-${s.key}" min="0.5" step="0.5" value="${st.est||4}" title="预估工时"></div>
+    <div><input type="date" id="w-due-${s.key}" value="${st.due||''}"></div>
+  </div>`}).join('')}
+  <label>备注 / 客户要求</label><textarea id="w-notes" rows="2">${esc(cur.notes||'')}</textarea>
+  <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end">
+    ${p?`<button class="btn ghost" onclick="replanStages('${p.id}')">按日期重排阶段</button>`:''}
+    <button class="btn ghost" onclick="closeModal()">取消</button>
+    <button class="btn" onclick="saveProject('${id||''}')">保存</button>
+  </div>`);
+}
+function replanStages(id){
+  const p=(S.projects||[]).find(x=>x.id===id);if(!p)return;
+  const st=$('#w-start').value||p.startDate,dl=$('#w-deliver').value||p.deliverDate;
+  const plan=stagePlan(st,dl);
+  WORK_STAGES.forEach(s=>{
+    const cur=p.stages[s.key]||{};
+    plan[s.key].status=cur.status||0;plan[s.key].progress=cur.progress||0;
+  });
+  p.stages=plan;save();closeModal();projectModal(id);
+}
+function saveProject(id){
+  const name=$('#w-name').value.trim();if(!name){alert('请填写项目名称');return}
+  const stages={};
+  WORK_STAGES.forEach(s=>{
+    const old=id?((S.projects.find(x=>x.id===id).stages||{})[s.key]||{}):{};
+    stages[s.key]={est:+$('#w-est-'+s.key).value||4,due:$('#w-due-'+s.key).value||'',
+      status:old.status||0,progress:old.progress||0};
+  });
+  const data={name,brand:$('#w-brand').value.trim(),type:$('#w-type').value,fee:+$('#w-fee').value||0,
+    startDate:$('#w-start').value||todayStr(),deliverDate:$('#w-deliver').value||todayStr(),
+    notes:$('#w-notes').value.trim(),stages};
+  if(id){Object.assign(S.projects.find(x=>x.id===id),data)}
+  else S.projects.push(Object.assign({id:uid()},data));
+  save();closeModal();render();
+}
+function delProject(id){
+  if(confirm('删除该项目？关联的收入记录会保留（可手动清理）。')){S.projects=S.projects.filter(p=>p.id!==id);save();render()}
+}
+/* ---- 工作项目导入：本地规则识别 / AI 解析 / JSON ---- */
+function normDate(s){
+  let y=null,m=0,d=0;
+  const ymd=s.match(/(\d{4})[-\/年](\d{1,2})[-\/月](\d{1,2})/);
+  if(ymd){y=+ymd[1];m=+ymd[2];d=+ymd[3]}
+  else{const md=s.match(/(\d{1,2})\s*[月\/\-]\s*(\d{1,2})/);if(md){y=new Date().getFullYear();m=+md[1];d=+md[2]}}
+  if(!y||!m||!d)return'';
+  const ds=`${y}-${pad(m)}-${pad(d)}`;
+  if(ds<todayStr()){ // 已过则视为明年
+    const nx=`${y+1}-${pad(m)}-${pad(d)}`;
+    return nx;
+  }
+  return ds;
+}
+function guessType(name){
+  if(/广告|商单|宣传|TVC/.test(name))return'品牌广告';
+  if(/探店/.test(name))return'探店笔记';
+  if(/种草/.test(name))return'产品种草';
+  if(/vlog|Vlog|日常/.test(name))return'Vlog';
+  if(/直播/.test(name))return'直播';
+  return'图文笔记';
+}
+function parseWorkText(text){
+  const out=[];
+  text.split('\n').map(s=>s.trim()).filter(Boolean).forEach(line=>{
+    let name=line,fee=0,date='';
+    const dm=line.match(/(\d{4}[-\/年])?\d{1,2}\s*[月\/\-]\s*\d{1,2}\s*[日号]?/);
+    if(dm){date=normDate(dm[0]);name=name.replace(dm[0],' ')}
+    const fm=line.match(/(?:¥|￥|报价|费用|预算|稿费)\s*(\d{2,6}(?:\.\d+)?)|(\d{2,6}(?:\.\d+)?)\s*(?:元|块|RMB|rmb|¥|￥)/);
+    if(fm){fee=parseFloat(fm[1]||fm[2]);name=name.replace(fm[0],' ')}
+    name=name.replace(/[，,、;；:：|]+$/,'')
+             .replace(/\s*(前提交|前交|提交|交付|截止|前完成|完成|deadline|DDL)\s*/gi,' ')
+             .replace(/\s*(元|块|人民币|RMB|rmb|¥|￥|左右)\s*/g,' ')
+             .replace(/\s+(前|要|需|需交)\s*$/,'')
+             .replace(/\s+/g,' ').trim();
+    if(!name)return;
+    out.push({name,brand:'',type:guessType(name),deliverDate:date||d2s(addDays(s2d(todayStr()),14)),fee,estHours:10});
+  });
+  return out;
+}
+function importWorkModal(){
+  openModal(`<h3><i class="ic" data-ic="tray"></i> 导入工作项目</h3>
+  <div class="tip" style="margin-bottom:10px">直接粘贴你的工作任务或客户需求原文，每行一个项目，例如：<br>
+  <code>xx品牌广告拍摄 10月20日前提交 报价1500元</code><br>
+  <code>咖啡店探店笔记 2026-10-08 稿费 400</code></div>
+  <label>工作任务文本</label>
+  <textarea id="w-imp" rows="6" placeholder="每行一个项目，可包含日期和金额"></textarea>
+  <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end;flex-wrap:wrap">
+    <button class="btn ghost" onclick="closeModal()">取消</button>
+    <button class="btn ghost" onclick="runWorkImport('local')"><i class="ic" data-ic="search"></i> 智能识别</button>
+    <button class="btn" onclick="runWorkImport('ai')"><i class="ic" data-ic="wand"></i> AI 解析</button>
+  </div>
+  <div id="w-imp-res" style="margin-top:10px"></div>`);
+}
+function runWorkImport(mode){
+  const text=$('#w-imp').value.trim();
+  if(!text){alert('请先粘贴工作内容');return}
+  if(mode==='local'){
+    const arr=parseWorkText(text);
+    if(!arr.length){$('#w-imp-res').innerHTML='<div class="tip" style="background:#fdeef2;border-color:#f7d4de;color:#c9566f">没能识别出项目，试试写成「项目名 日期 金额」的格式，或用 AI 解析。</div>';return}
+    showWorkImport(arr);
+  }else{
+    runWorkAI(text);
+  }
+}
+async function runWorkAI(text){
+  const a=S.settings.ai;
+  if(!a.key){alert('请先到「设置」页填写 AI 接口地址、Key 和模型（也可改用「智能识别」或手动新增）');return}
+  $('#w-imp-res').innerHTML='<div class="muted">AI 解析中…</div>';
+  const prompt=`你是小红书内容工作室的项目助理。下面是商单/工作需求原文，请提取所有工作项目，输出严格 JSON 数组，不要任何其他文字。字段：name(项目名),brand(品牌或客户,没有则空串),type(品牌广告|产品种草|探店笔记|Vlog|直播|图文笔记|其他),deliverDate(交付日期 YYYY-MM-DD,没写就按常理推断一个合理日期),fee(报价金额数字,没有则0),estHours(预计总工时数字),notes(客户硬性要求摘要),stageEst(数组,依次为写脚本/拍摄/剪辑/发布四阶段的预估工时)。参考今天日期：${todayStr()}。\n\n工作需求：\n${text.slice(0,6000)}`;
+  try{
+    const arr=await callAI(prompt);
+    arr.forEach(x=>{if(x.stageEst)x.estHours=x.estHours||x.stageEst.reduce((s,b)=>s+(+b||0),0)});
+    showWorkImport(arr);
+  }catch(e){
+    $('#w-imp-res').innerHTML=`<div class="tip" style="background:#fdeef2;border-color:#f7d4de;color:#c9566f">AI 解析失败：${esc(e.message)}<br>可先用「智能识别」或手动新增；或到「设置 → AI 解析设置」点「测试连接」检查配置。</div>`;
+  }
+}
+function showWorkImport(arr){
+  window.__wImp=arr;
+  $('#w-imp-res').innerHTML=`<div class="tip">识别出 <b>${arr.length}</b> 个项目，确认后导入（导入后用「编辑」可微调）：</div>
+  ${arr.map((p,i)=>`<div class="todo-item">
+    <input type="checkbox" checked style="width:auto" data-i="${i}">
+    <div class="t"><b>${esc(p.name)}</b> <span class="tag pink">${esc(p.type||guessType(p.name))}</span>
+    ${p.fee?`<span class="tag gray">¥${p.fee}</span>`:''}
+    <div class="muted">交稿 ${esc(p.deliverDate)} · 预计 ${p.estHours||10}h ${p.brand?'· '+esc(p.brand):''}${p.notes?' · '+esc(p.notes):''}</div></div>
+  </div>`).join('')}
+  <div style="text-align:right;margin-top:8px"><button class="btn" onclick="applyWorkImport()">导入所选项目</button></div>`;
+}
+function applyWorkImport(){
+  const checks=[...document.querySelectorAll('#w-imp-res input[type=checkbox]')];
+  let n=0;
+  checks.forEach(cb=>{
+    if(!cb.checked)return;
+    const it=window.__wImp[+cb.dataset.i];n++;
+    const start=todayStr();
+    const deliver=/^\d{4}-\d{2}-\d{2}$/.test(it.deliverDate||'')?it.deliverDate:d2s(addDays(s2d(start),14));
+    const stages=stagePlan(start,deliver);
+    const se=it.stageEst||[];
+    WORK_STAGES.forEach((s,i)=>{if(se[i])stages[s.key].est=+se[i]||stages[s.key].est});
+    S.projects.push({id:uid(),name:it.name,brand:it.brand||'',type:it.type||guessType(it.name),
+      startDate:start,deliverDate:deliver,fee:+it.fee||0,notes:it.notes||'',stages});
+  });
+  save();closeModal();alert('成功导入 '+n+' 个工作项目');go('work');
+}
+
+/* ================= 收入 · 存钱罐 ================= */
+function totalIncome(){return (S.income||[]).reduce((a,b)=>a+(+b.amount||0),0)}
+function receivable(){return (S.projects||[]).reduce((a,p)=>a+Math.max(0,(+p.fee||0)-incomeOfProject(p.id)),0)}
+function monthIncome(mon){return (S.income||[]).filter(x=>(x.date||'').indexOf(mon)===0).reduce((a,b)=>a+(+b.amount||0),0)}
+const MILESTONES=[500,1000,2000,3000,5000,8000,10000,20000,50000,100000];
+function piggySVG(pct){
+  const cx=160,cy=152,rx=92,ry=62,maxRows=6;
+  const filled=maxRows*Math.min(100,pct)/100;
+  const coins=[];
+  for(let r=0;r<maxRows;r++){
+    const f=Math.max(0,Math.min(1,filled-r));
+    if(f<=0)break;
+    const y=cy+ry-14-r*17;
+    const count=Math.max(1,Math.round(7*f));
+    const x0=cx-(count-1)*11;
+    for(let i=0;i<count;i++){
+      const x=x0+i*22;
+      coins.push(`<circle cx="${x}" cy="${y}" r="9.5" fill="#f7c948" stroke="#dfa61f" stroke-width="2"/>
+      <circle cx="${x}" cy="${y}" r="4" fill="none" stroke="#e5b52c" stroke-width="1.5"/>`);
+    }
+  }
+  const drop=window.__coinDrop?[0,1,2].map((i)=>`<g class="coin-fall" style="animation-delay:${i*0.12}s">
+      <circle cx="${140+i*20}" cy="70" r="9" fill="#f7c948" stroke="#dfa61f" stroke-width="2"/></g>`).join(''):'';
+  window.__coinDrop=false;
+  return`<svg viewBox="0 0 320 250" width="100%" style="max-width:330px">
+    <defs><clipPath id="pigbody"><ellipse cx="160" cy="152" rx="92" ry="62"/></clipPath></defs>
+    <rect x="103" y="200" width="22" height="32" rx="9" fill="#f294b8"/>
+    <rect x="195" y="200" width="22" height="32" rx="9" fill="#f294b8"/>
+    <path d="M68 142 q-26 4 -16 22 q7 13 19 6" fill="none" stroke="#f294b8" stroke-width="7" stroke-linecap="round"/>
+    <path d="M118 96 l8 -32 l28 18 z" fill="#f7a8c4"/>
+    <ellipse cx="160" cy="152" rx="92" ry="62" fill="#fbc4d8"/>
+    <g clip-path="url(#pigbody)">${coins.join('')}</g>
+    <ellipse cx="160" cy="152" rx="92" ry="62" fill="none" stroke="#f294b8" stroke-width="3"/>
+    <ellipse cx="246" cy="158" rx="25" ry="20" fill="#f7a8c4" stroke="#f294b8" stroke-width="3"/>
+    <circle cx="238" cy="158" r="3.4" fill="#c96b90"/><circle cx="254" cy="158" r="3.4" fill="#c96b90"/>
+    <circle cx="208" cy="120" r="6.5" fill="#4a3b42"/><circle cx="210.5" cy="117.5" r="2" fill="#fff"/>
+    <rect x="128" y="86" width="64" height="11" rx="5.5" fill="#8a5a6e"/>
+    ${drop}
+  </svg>`;
+}
+function countUp(el,to){
+  const from=(window.__prevTotal==null)?0:window.__prevTotal;
+  window.__prevTotal=to;
+  const dur=900,t0=performance.now();
+  (function step(t){
+    const k=Math.min(1,(t-t0)/dur);
+    const v=from+(to-from)*(1-Math.pow(1-k,3));
+    el.textContent='¥'+Math.round(v).toLocaleString();
+    if(k<1)requestAnimationFrame(step);
+  })(t0);
+}
+function incomeHTML(){
+  const total=totalIncome();
+  const goal=+S.settings.totalGoal||10000;
+  const pct=Math.min(100,Math.round(total/goal*100));
+  const mon=todayStr().slice(0,7);
+  const mIncome=monthIncome(mon);
+  const rec=receivable();
+  const projs=(S.projects||[]).filter(p=>(+p.fee||0)>0);
+  const earned=MILESTONES.filter(m=>total>=m);
+  const next=MILESTONES.find(m=>total<m);
+  const list=(S.income||[]).slice().sort((a,b)=>a.date<b.date?1:-1);
+  const months=lastMonths(6);
+  const maxM=Math.max(1,...months.map(m=>monthIncome(m)));
+  return`
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+    <h2 style="margin:0"><i class="ic" data-ic="coin"></i> 收入 · 我的存钱罐</h2>
+    <div style="display:flex;gap:8px;align-items:center">
+      <span class="muted">目标 ¥</span><input type="number" id="m-goal" value="${goal}" style="width:110px" onchange="S.settings.totalGoal=+this.value||10000;save();renderIncomeSection()">
+      <button class="btn sm" onclick="incomeModal()">＋ 记一笔收入</button>
+    </div>
+  </div>
+  <div class="grid" style="grid-template-columns:1.02fr 1fr">
+    <div class="card" style="text-align:center">
+      <div class="money-big" id="money-total">¥0</div>
+      <div class="muted">累计收入 · 目标 ¥${goal.toLocaleString()}</div>
+      <div class="goal-bar" style="margin:12px 0 4px"><i style="width:${pct}%"></i></div>
+      <div class="muted" style="margin-bottom:6px">${pct}% ${next?`· 再赚 <b style="color:#c25d8a">¥${(next-total).toLocaleString()}</b> 解锁「${next>=10000?(next/10000)+'万':next}元」徽章`:'· 已解锁全部徽章 <i class="ic" data-ic="sparkle"></i>'}</div>
+      <div class="pig-wrap">${piggySVG(pct)}</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:6px">
+        ${MILESTONES.slice(0,8).map(m=>earned.includes(m)
+          ?`<span class="badge"><i class="ic" data-ic="medal"></i> ${m>=10000?(m/10000)+'万':m}元</span>`
+          :`<span class="badge locked"><i class="ic" data-ic="lock"></i> ${m>=10000?(m/10000)+'万':m}元</span>`).join('')}
+      </div>
+    </div>
+    <div>
+      <div class="grid g3" style="margin-bottom:16px">
+        <div class="card stat"><div><div class="big" style="color:#c25d8a">¥${mIncome.toLocaleString()}</div><div class="sub">本月收入</div></div></div>
+        <div class="card stat"><div><div class="big">¥${rec.toLocaleString()}</div><div class="sub">待收（报价未结清）</div></div></div>
+        <div class="card stat"><div><div class="big">${projs.length}</div><div class="sub">有报价的项目</div></div></div>
+      </div>
+      <div class="card" style="margin-bottom:16px">
+        <h2 style="margin-top:0"><i class="ic" data-ic="chart"></i> 近 6 个月收入</h2>
+        <div style="display:flex;gap:8px;align-items:flex-end;height:100px">
+          ${months.map(m=>{const v=monthIncome(m);return`<div style="flex:1;text-align:center">
+            <div style="height:${Math.max(3,v/maxM*72)}px;background:${m===mon?'#e879a6':'#f7bcd3'};border-radius:6px 6px 0 0;margin:0 3px" title="¥${v}"></div>
+            <div class="muted" style="font-size:11px;margin-top:4px">${m.slice(5)}月</div></div>`}).join('')}
+        </div>
+      </div>
+      <div class="card">
+        <h2 style="margin-top:0">项目收款进度</h2>
+        ${projs.length?projs.map(p=>{
+          const paid=incomeOfProject(p.id);const r=Math.min(100,Math.round(100*paid/((+p.fee)||1)));
+          return`<div class="coin-row"><div style="flex:1;min-width:0">
+            <div style="display:flex;justify-content:space-between;gap:8px"><b>${esc(p.name)}</b><span class="muted">¥${paid} / ¥${p.fee}</span></div>
+            <div class="bar-mini" style="margin-top:4px"><i style="width:${r}%;background:${r>=100?'#d15c8f':'#f0a13a'}"></i></div>
+          </div></div>`}).join(''):'<div class="muted">暂无有报价的项目</div>'}
+      </div>
+    </div>
+  </div>
+  <h2><i class="ic" data-ic="list"></i> 收入明细 <span class="muted">共 ${list.length} 笔</span></h2>
+  <div class="card" style="padding:6px 18px">
+    ${list.length?`<table><tr><th>日期</th><th>项目</th><th>金额</th><th>备注</th><th></th></tr>
+      ${list.map(x=>`<tr><td>${fmtMD(x.date)}</td><td>${esc((S.projects||[]).find(p=>p.id===x.projectId)?S.projects.find(p=>p.id===x.projectId).name:'—')}</td>
+      <td><b style="color:#c25d8a">+¥${(+x.amount||0).toLocaleString()}</b></td><td class="muted">${esc(x.note||'')}</td>
+      <td><button class="btn danger sm" onclick="delIncome('${x.id}')">删</button></td></tr>`).join('')}</table>`
+    :'<div class="empty">还没有收入记录，点右上角「记一笔收入」开始攒钱 <i class="ic" data-ic="pig"></i></div>'}
+  </div>`;
+}
+function renderIncomeSection(){
+  const el=$('#income-sec');if(!el)return;
+  el.innerHTML=incomeHTML();
+  const t=$('#money-total');if(t)countUp(t,totalIncome());
+  if(!FX.busy)FX.enterInto('#income-sec');
+}
+function lastMonths(n){
+  const out=[];const d=new Date();
+  for(let i=n-1;i>=0;i--){const x=new Date(d.getFullYear(),d.getMonth()-i,1);out.push(x.getFullYear()+'-'+pad(x.getMonth()+1))}
+  return out;
+}
+function incomeModal(pid){
+  const projs=S.projects||[];
+  openModal(`<h3><i class="ic" data-ic="coin"></i> 记一笔收入</h3>
+  <div class="row"><div><label>到账日期</label><input type="date" id="i-date" value="${todayStr()}"></div>
+  <div><label>金额（元）*</label><input type="number" id="i-amount" min="1" step="0.01" placeholder="例如 1500"></div></div>
+  <label>关联项目</label>
+  <select id="i-proj"><option value="">不关联</option>
+  ${projs.map(p=>`<option value="${p.id}" ${p.id===pid?'selected':''}>${esc(p.name)}${p.fee?'（报价 ¥'+p.fee+'）':''}</option>`).join('')}</select>
+  <label>备注</label><input id="i-note" placeholder="例如：首款 50% / 尾款 / 全款">
+  <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end">
+    <button class="btn ghost" onclick="closeModal()">取消</button>
+    <button class="btn" onclick="saveIncome()">存进存钱罐 <i class="ic" data-ic="pig"></i></button>
+  </div>`);
+}
+function saveIncome(){
+  const amount=+$('#i-amount').value;
+  if(!amount||amount<=0){alert('请填写金额');return}
+  window.__prevTotal=totalIncome();      // 从旧总额开始做数字滚动
+  window.__coinDrop=true;                // 金币掉落动画
+  (S.income=S.income||[]).push({id:uid(),date:$('#i-date').value||todayStr(),amount,
+    projectId:$('#i-proj').value,note:$('#i-note').value.trim()});
+  save();closeModal();go('work');
+  FX.coinBurst();      // 金币掉落 + 存钱罐回弹
+}
+function delIncome(id){
+  if(confirm('删除这笔收入记录？')){
+    window.__prevTotal=totalIncome();
+    window.__coinDrop=false;
+    S.income=S.income.filter(i=>i.id!==id);
+    save();
+    if($('#income-sec'))renderIncomeSection();else render();
+  }
+}
+
+/* ================= 时间线（甘特图，内嵌在规划页） ================= */
+function ganttHTML(){
+  const start=s2d(S.semester.start),end=s2d(S.semester.end);
+  let maxDue=S.semester.end;
+  allPlanItems().forEach(it=>{if(it.dueDate>maxDue)maxDue=it.dueDate});
+  const total=Math.max(1,daysBetween(S.semester.start,maxDue));
+  const projs=S.projects||[];
+  const rows=S.tasks.length+projs.length+1;
+  const LBL=150;   // 左侧固定一列放任务名：名字不再压在时间条上（学期初开始的任务原来必糊）
+  const W=1080,lh=34,top=34,H=top+rows*lh+30;
+  const x=ds=>LBL+(daysBetween(S.semester.start,ds)/total)*(W-LBL-12);
+  const clip=(s,n)=>{s=String(s||'');return s.length>n?s.slice(0,n-1)+'…':s};   // 先截断再转义，别把 &amp; 切一半
+  const pctTxt=(x2,y,w,pct)=>w>=44
+    ?`<text x="${x2-8}" y="${y+12}" font-size="10" text-anchor="end" fill="#fff" fill-opacity="0.85">${pct}%</text>`
+    :`<text x="${Math.min(W-34,x2+8)}" y="${y+12}" font-size="10" fill="#c9a2b4">${pct}%</text>`;
+  let grid='',bands='';
+  const totalWeeks=Math.ceil(total/7);
+  for(let w=0;w<=totalWeeks;w+=2){
+    const ds=d2s(addDays(start,w*7));const px=Math.min(W-12,x(ds));
+    grid+=`<line x1="${px}" y1="20" x2="${px}" y2="${H-24}" stroke="#f6e3ed" stroke-width="1"/>
+    <text x="${px+3}" y="14" font-size="10" fill="#c9a2b4">第${w+1}周</text>`;
+  }
+  for(let r=0;r<rows;r+=2)bands+=`<rect x="${LBL-6}" y="${top+r*lh-5}" width="${W-LBL-8}" height="${lh-4}" fill="#ffffff" opacity="0.38"/>`;
+  let i=0;
+  const bars=S.tasks.map(t=>{
+    const st=t.startDate&&t.startDate>S.semester.start?t.startDate:S.semester.start;
+    const x1=x(st),x2=Math.max(x1+8,x(t.dueDate)+6);const y=top+i*lh;i++;
+    const late=!t.done&&t.dueDate<todayStr();
+    const rep=isRepeatTask(t);
+    const wds=rep?'每周'+WEEKDAY_NAMES[t.repeat.weekday].slice(1):'';   // 「每周二」，别和 WEEKDAY_NAMES 的「周」前缀重复
+    // 重复任务：条画成虚线框（=重复区间），每个发生日画实心圆点
+    const bar=rep
+      ?`<rect x="${x1}" y="${y}" width="${x2-x1}" height="16" rx="8" fill="${courseColor(t.courseId)}" fill-opacity="0.16" stroke="${courseColor(t.courseId)}" stroke-width="1.4" stroke-dasharray="4 2">
+        <title>${esc(t.name)} | ${wds} · 到 ${fmtMD(t.dueDate)} · 每次约 ${t.estHours||0.5}h</title>
+      </rect>`
+      :`<rect x="${x1}" y="${y}" width="${x2-x1}" height="16" rx="8" fill="${late?'#f0a4b8':courseColor(t.courseId)}" opacity="${t.done?0.35:0.85}">
+        <title>${esc(t.name)} | ${fmtMD(st)} ~ ${fmtMD(t.dueDate)} | 进度 ${taskProgress(t)}%</title>
+      </rect>`;
+    const dots=rep?repeatDates(t).map(ds=>`<circle cx="${x(ds)}" cy="${y+8}" r="4" fill="${courseColor(t.courseId)}" stroke="#fff" stroke-width="1.5"><title>${wds} · ${fmtMD(ds)}${ds===todayStr()?'（今天）':''}</title></circle>`).join(''):'';
+    return`<g>
+      <text x="${LBL-10}" y="${y+12}" font-size="11" text-anchor="end" fill="#96707f">${esc(clip(t.name,10))}<title>${esc(t.name)} · ${rep?`${wds} · 到 ${fmtMD(t.dueDate)}`:`${fmtMD(st)} ~ ${fmtMD(t.dueDate)}`}</title></text>
+      ${bar}
+      ${dots}
+      ${rep?'':pctTxt(x2,y,x2-x1,taskProgress(t))}
+    </g>`}).join('');
+  const workBars=projs.map(p=>{
+    const st=p.startDate&&p.startDate>S.semester.start?p.startDate:S.semester.start;
+    const x1=x(st),x2=Math.max(x1+10,x(p.deliverDate)+6);const y=top+i*lh;i++;
+    const pp=projectProgress(p);
+    const marks=WORK_STAGES.map(s=>{
+      const std=(p.stages&&p.stages[s.key])||{};
+      if(!std.due)return'';
+      const mx=x(std.due);const fill=std.status===2?'#d15c8f':(std.status===1?'#fff':'#ffffffcc');
+      return`<circle cx="${mx}" cy="${y+8}" r="5.5" fill="${fill}" stroke="${WORK_COLOR}" stroke-width="2">
+        <title>${s.label} · ${fmtMD(std.due)} · ${std.status===2?'已完成':std.status===1?'进行中':'未开始'}</title></circle>`;
+    }).join('');
+    return`<g>
+      <text x="${LBL-10}" y="${y+12}" font-size="11" text-anchor="end" fill="#96707f">${esc(clip(p.name,10))}<title>小红书 · ${esc(p.name)} · 交稿 ${fmtMD(p.deliverDate)}</title></text>
+      <rect x="${x1}" y="${y}" width="${x2-x1}" height="16" rx="8" fill="${WORK_COLOR}" opacity="0.85">
+        <title>${esc(p.name)} | 交稿 ${fmtMD(p.deliverDate)} | 进度 ${pp}% ${p.fee?'| 报价 ¥'+p.fee:''}</title>
+      </rect>
+      ${marks}
+      ${pctTxt(x2,y,x2-x1,pp)}
+    </g>`}).join('');
+  const tx=Math.max(LBL,Math.min(W-12,x(todayStr())));
+  const legend=S.courses.map(c=>`<span><i style="background:${c.color}"></i>${esc(c.name)}</span>`).join('')
+    +(S.tasks.some(isRepeatTask)?'<span><i style="background:#d15c8f;border-radius:50%"></i>实心圆点=每周重复发生</span>':'')
+    +(projs.length?`<span><i style="background:${WORK_COLOR}"></i>小红书工作（圆点=四阶段）</span>`:'')
+    +`<span><i style="background:#f0a4b8"></i>已逾期</span>`;
+  return`
+  <div class="legend">${legend}</div>
+  <div class="card" style="overflow-x:auto">
+  ${(S.tasks.length||projs.length)?`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="min-width:${W}px">
+    ${bands}${grid}
+    <line x1="${tx}" y1="18" x2="${tx}" y2="${H-24}" stroke="#d96d85" stroke-width="2" stroke-dasharray="4 3"/>
+    <text x="${tx+4}" y="28" font-size="10" fill="#d96d85" font-weight="700">今天</text>
+    ${bars}${workBars}
+  </svg>`:'<div class="empty">暂无任务数据</div>'}
+  </div>`;
+}
+
+/* ================= 设置页 ================= */
+function renderSet(){
+  const a=S.settings.ai;
+  const g=S.settings.github||{};
+  $('#view').innerHTML=`
+  <div class="grid g2">
+    <div class="card">
+      <h2 style="margin-top:0"><i class="ic" data-ic="cap"></i> 学期设置</h2>
+      <label>学期名称</label><input id="st-name" value="${esc(S.semester.name)}">
+      <div class="row"><div><label>开始日期</label><input type="date" id="st-start" value="${S.semester.start}"></div>
+      <div><label>结束日期</label><input type="date" id="st-end" value="${S.semester.end}"></div></div>
+      <label>每天计划投入（小时，用于倒推最晚开始时间）</label><input type="number" step="0.5" min="1" id="st-wpd" value="${S.settings.workPerDay}">
+      <label>存钱罐目标金额（元）</label><input type="number" min="100" step="100" id="st-goal" value="${S.settings.totalGoal||10000}">
+      <div style="margin-top:14px"><button class="btn" onclick="saveSem()">保存学期设置</button></div>
+    </div>
+    <div class="card">
+      <h2 style="margin-top:0"><i class="ic" data-ic="wand"></i> AI 解析设置（OpenAI 兼容接口）</h2>
+      <label>接口地址（chat/completions 完整 URL）</label><input id="ai-ep" value="${esc(a.endpoint)}" placeholder="https://api.deepseek.com/chat/completions">
+      <label>API Key</label><input id="ai-key" type="password" value="${esc(a.key)}" placeholder="sk-...">
+      <label>模型</label><input id="ai-model" value="${esc(a.model)}" placeholder="deepseek-flash / gpt-4o-mini">
+      <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button class="btn" onclick="saveAI()">保存 AI 设置</button>
+        <button class="btn ghost" onclick="testAI()">测试连接</button>
+        <span id="ai-test" class="muted"></span>
+      </div>
+      <div class="muted" style="margin-top:10px">推荐填 DeepSeek：接口地址 <b>https://api.deepseek.com/chat/completions</b>，模型 <b>deepseek-flash</b>（更快更便宜；需要更强推理可填 <b>deepseek-v4-pro</b>）；Key 到 platform.deepseek.com 注册后创建（按量计费，很便宜）。解析请求由本机数据服务代发，因此不受浏览器跨域限制；Key 只存在你自己的电脑上（E 盘 data.json），不会发给第三方。不想配 Key 也行：把大纲发到 WorkBuddy 对话里由我解析，再用「导入任务 JSON」粘贴进来。</div>
+    </div>
+    <div class="card">
+      <h2 style="margin-top:0"><i class="ic" data-ic="tray"></i> 导入任务 JSON</h2>
+      <div class="muted" style="margin-bottom:8px">格式：[{"courseName":"高等数学","name":"期末考试","type":"考试","weight":60,"dueDate":"2027-01-08","estHours":20,"notes":"闭卷","subtasks":["复习第1-4章","刷历年题"]}]</div>
+      <textarea id="imp-json" rows="7" placeholder='粘贴 JSON 数组...'></textarea>
+      <div style="margin-top:10px"><button class="btn" onclick="importJSON()">导入任务</button></div>
+    </div>
+    <div class="card">
+      <h2 style="margin-top:0"><i class="ic" data-ic="house"></i> 数据与同步</h2>
+      <div class="tip" style="margin-bottom:10px">
+        <b>存储位置：</b>${MODE==='server'?'E 盘数据服务（data.json）——电脑与手机共用同一份':MODE==='cloud'?'GitHub Gist 云端——任何设备打开网页共用同一份':'仅本机浏览器（未连上数据服务）'}<br>
+        <b>同步状态：</b><span id="sync-label" class="muted${/已同步/.test(syncNote||'')?' sync-ok':''}">${esc(syncNote||'已同步')}</span>　<b>版本号：</b>#${REV}
+      </div>
+      <div class="muted" style="margin-bottom:10px">${MODE==='server'
+        ?'改动会自动存进 E 盘 data.json，并在 backups 文件夹每天留一份快照；手机与电脑打开同一地址会自动同步（约 5 秒一次）。'
+        :MODE==='cloud'
+        ?'改动会自动存进你 GitHub 账号的秘密 Gist，任何设备打开这个网页都会自动同步；每次保存自动留一个历史版本，可随时回滚。'
+        :'当前未连上数据服务也未启用云同步，数据只存在这台设备的浏览器里。电脑上可双击 E 盘「启动工作台.bat」；跨设备使用请启用下方的 GitHub 云同步。'}</div>
+      ${bakInfo()?`<div class="tip" style="margin-bottom:10px">本机另存有一份自动备份（${esc(bakInfo())}）。如果发现数据少了东西，可点下方「恢复本机备份」找回。</div>`:''}
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn ghost" onclick="syncPull()">立即同步</button>
+        <button class="btn ghost" onclick="exportData()">导出全部数据</button>
+        <label class="btn ghost" style="cursor:pointer">导入备份<input type="file" accept=".json" style="display:none" onchange="importData(this)"></label>
+        ${bakInfo()?`<button class="btn ghost" onclick="restoreLocal()">恢复本机备份</button>`:''}
+        <button class="btn ghost" onclick="loadDemo()">加载示例数据</button>
+        <button class="btn danger" onclick="clearAll()">清空所有数据</button>
+      </div>
+      <div class="muted" style="margin-top:10px">手机与电脑要同时用，两边都打开同一个地址（电脑 localhost:5218 / 手机 http://电脑IP:5218）即可，改动会在约 5 秒内互相同步。换设备或清缓存前建议先用「导出全部数据」留一份。API Key 会随数据写入 E 盘的 data.json，请勿把电脑或该文件分享给他人。</div>
+    </div>
+    <div class="card">
+      <h2 style="margin-top:0"><i class="ic" data-ic="star4"></i> GitHub 云同步（跨互联网多设备 + 历史版本）</h2>
+      <div class="muted" style="margin-bottom:10px">把数据存在你 GitHub 账号的<b>秘密 Gist</b>里：手机、平板、任何电脑打开网页版都能自动同步，不依赖电脑开机；每次保存自动留一个<b>历史版本</b>，GitHub 上可随时查看与回滚。与上面的本地数据服务可以并存：打开网页时能连上云就用云，连不上自动落回本地，数据都不会丢。</div>
+      <label style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><input id="gh-on" type="checkbox" ${g.enabled?'checked':''}> <b>启用云同步</b></label>
+      <label>Personal Access Token（需 gist 权限）</label><input id="gh-token" type="password" value="${esc(g.token||'')}" placeholder="ghp_...">
+      <label>Gist ID（留空 = 保存时自动创建秘密 Gist）</label><input id="gh-gist" value="${esc(g.gistId||'')}" placeholder="自动创建后会帮你填上">
+      <label>GitHub API 地址（网络不稳可填代理）</label><input id="gh-api" value="${esc(g.api||'https://api.github.com')}" placeholder="https://api.github.com">
+      <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button class="btn" id="gh-save" onclick="saveGitHub()">保存并启用</button>
+        <button class="btn ghost" onclick="testGitHub()">测试连接</button>
+        <button class="btn ghost" onclick="ghSyncNow()">立即同步到云端</button>
+        <button class="btn ghost" onclick="ghHistory()">查看历史版本</button>
+        <span id="gh-test" class="muted"></span>
+      </div>
+      <div class="muted" style="margin-top:10px">Token 获取：GitHub 右上角头像 → <b>Settings → Developer settings → Personal access tokens → Tokens (classic)</b> → Generate new token (classic)，勾选 <b>gist</b> 权限，生成后粘贴到上面。换新设备只需填 Token 和 Gist ID 两项。Token 与数据一样只存在你的设备和你自己的 GitHub 账号里，不会被公开（秘密 Gist 不出现在搜索与公开列表）。校园网直连 GitHub 不稳时，可在上方「API 地址」填代理。</div>
+    </div>
+  </div>`;
+}
+function saveSem(){
+  S.semester.name=$('#st-name').value||S.semester.name;
+  S.semester.start=$('#st-start').value||S.semester.start;
+  S.semester.end=$('#st-end').value||S.semester.end;
+  S.settings.workPerDay=parseFloat($('#st-wpd').value)||3;
+  S.settings.totalGoal=parseFloat($('#st-goal').value)||10000;
+  save();render();alert('已保存');
+}
+function saveAI(){S.settings.ai={endpoint:$('#ai-ep').value.trim(),key:$('#ai-key').value.trim(),model:$('#ai-model').value.trim()};save();alert('已保存')}
+async function testAI(){
+  const out=document.getElementById('ai-test');
+  const ep=$('#ai-ep').value.trim(),key=$('#ai-key').value.trim(),model=$('#ai-model').value.trim();
+  if(!ep||!key){if(out)out.textContent='请先填接口地址和 API Key';return}
+  if(out)out.textContent='正在测试…';
+  const backup=S.settings.ai;
+  S.settings.ai={endpoint:ep,key:key,model:model};
+  try{
+    await callAI('只输出这个 JSON 数组本身，不要任何解释和其他文字：[{"ok":1}]');
+    if(out)out.textContent='✅ 连接成功，接口可用';
+  }catch(e){
+    if(out)out.textContent='❌ '+((e&&e.message)||e);
+  }
+  S.settings.ai=backup;
+}
+function exportData(){
+  const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='小岛的工作台备份-'+todayStr()+'.json';a.click();
+}
+function importData(inp){
+  const f=inp.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{try{const d=JSON.parse(r.result);if(d.tasks&&d.courses){S=d;save();render();alert('导入成功')}else alert('文件格式不对')}catch(e){alert('解析失败：'+e.message)}};
+  r.readAsText(f);
+}
+function clearAll(){
+  if(confirm('确定清空所有课程、任务和待办数据？此操作不可恢复（建议先导出备份）。')){S=defaultState();save();go('dash')}
+}
+function importJSON(){
+  try{
+    const arr=JSON.parse($('#imp-json').value);
+    if(!Array.isArray(arr))throw new Error('应为 JSON 数组');
+    let n=0;
+    arr.forEach(it=>{
+      let cid=it.courseId;
+      if(!cid&&it.courseName){let c=S.courses.find(c=>c.name===it.courseName);if(!c){c={id:uid(),name:it.courseName,color:PALETTE[S.courses.length%PALETTE.length],teacher:'',schedule:'',syllabus:''};S.courses.push(c)}cid=c.id}
+      if(!cid&&S.courses.length)cid=S.courses[0].id;
+      S.tasks.push({id:uid(),courseId:cid,name:it.name||'未命名任务',type:it.type||'其他',weight:it.weight||0,
+        dueDate:it.dueDate||S.semester.end,estHours:it.estHours||4,startDate:it.startDate||'',notes:it.notes||'',
+        repeat:(it.repeat&&it.repeat.freq==='weekly')?{freq:'weekly',weekday:(it.repeat.weekday>=0&&it.repeat.weekday<=6)?+it.repeat.weekday:1}:null,
+        dependencies:it.dependencies||[],subtasks:(it.subtasks||[]).map(s=>({id:uid(),name:s,done:false})),done:false,manualProgress:0});
+      n++;
+    });
+    save();alert('成功导入 '+n+' 个任务');go('courses');
+  }catch(e){alert('导入失败：'+e.message)}
+}
+
+/* ================= 弹窗 ================= */
+const PALETTE=['#e879a6','#9d8cd2','#d4a5c9','#dfa17c','#b48ad2','#d97a7f','#c9a56b','#a3808f'];
+function openModal(html){$('#modal-root').innerHTML=`<div class="modal-mask" onclick="if(event.target===this)closeModal()"><div class="modal">${html}</div></div>`}
+function closeModal(){$('#modal-root').innerHTML=''}
+
+function courseModal(id){
+  const c=id?S.courses.find(x=>x.id===id):null;
+  openModal(`<h3>${c?'编辑课程':'添加课程'}</h3>
+  <label>课程名称 *</label><input id="c-name" value="${esc(c?c.name:'')}">
+  <div class="row"><div><label>教师</label><input id="c-teacher" value="${esc(c?c.teacher:'')}"></div>
+  <div><label>上课时间（如：周一 3-4 节）</label><input id="c-sched" value="${esc(c?c.schedule:'')}"></div></div>
+  <label>主题色</label><input type="color" id="c-color" value="${c?c.color:PALETTE[S.courses.length%PALETTE.length]}" style="height:38px;padding:2px">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px">
+    <label style="margin:0">课程大纲 / 考核说明</label>
+    <label class="btn ghost sm" style="cursor:pointer;white-space:nowrap;flex:none;margin:0" title="支持 PDF / Word / PPT / Excel / txt / md，自动提取文字">
+      <i class="ic" data-ic="tray"></i> 上传文件<input type="file" accept=".pdf,.txt,.md,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.csv,application/pdf,text/plain" style="display:none" onchange="attachSyllabus(this,'c-syllabus','c-syl-note')">
+    </label>
+  </div>
+  <textarea id="c-syllabus" rows="6" placeholder="粘贴课程大纲、考核方式、评分构成等（也可以点右上角上传 PDF / Word / PPT，自动提取文字）">${esc(c?c.syllabus:'')}</textarea>
+  <div id="c-syl-note" class="muted" style="margin-top:6px"></div>
+  <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end">
+    <button class="btn ghost" onclick="closeModal()">取消</button>
+    <button class="btn" onclick="saveCourse('${id||''}')">保存</button>
+  </div>`);
+}
+function saveCourse(id){
+  const name=$('#c-name').value.trim();if(!name){alert('请填写课程名称');return}
+  const data={name,teacher:$('#c-teacher').value.trim(),schedule:$('#c-sched').value.trim(),color:$('#c-color').value,syllabus:$('#c-syllabus').value};
+  if(id){Object.assign(S.courses.find(x=>x.id===id),data)}
+  else S.courses.push({id:uid(),...data});
+  save();closeModal();render();
+}
+function delCourse(id){
+  const n=S.tasks.filter(t=>t.courseId===id).length;
+  if(confirm(`删除该课程？${n?`其下 ${n} 个任务也会一并删除。`:''}`)){
+    S.tasks=S.tasks.filter(t=>t.courseId!==id);S.courses=S.courses.filter(c=>c.id!==id);save();render();
+  }
+}
+
+function taskModal(id,presetCourse){
+  const t=id?S.tasks.find(x=>x.id===id):null;
+  const cid=t?t.courseId:(presetCourse||'');
+  openModal(`<h3>${t?'编辑任务':'添加任务'}</h3>
+  <div class="row"><div><label>所属课程</label><select id="t-course">${S.courses.map(c=>`<option value="${c.id}" ${c.id===cid?'selected':''}>${esc(c.name)}</option>`).join('')}</select></div>
+  <div><label>任务名称 *</label><input id="t-name" value="${esc(t?t.name:'')}"></div></div>
+  <div class="row">
+    <div><label>类型</label><select id="t-type">${TYPES.map(x=>`<option ${t&&t.type===x?'selected':''}>${x}</option>`).join('')}</select></div>
+    <div><label>考核占比 %（0 表示不计）</label><input type="number" id="t-weight" min="0" max="100" value="${t?t.weight||0:0}"></div>
+  </div>
+  <div class="row">
+    <div><label>截止日期 *</label><input type="date" id="t-due" value="${t?t.dueDate:S.semester.end}"></div>
+    <div><label>预计工时（小时）</label><input type="number" id="t-est" min="0.5" step="0.5" value="${t?t.estHours||4:4}"></div>
+  </div>
+  <div class="row">
+    <div><label>重复</label><select id="t-repeat" onchange="document.getElementById('t-wd-wrap').style.display=this.value?'':'none'">
+      <option value="">不重复（一次性任务）</option>
+      <option value="weekly" ${t&&t.repeat&&t.repeat.freq==='weekly'?'selected':''}>每周重复</option>
+    </select></div>
+    <div id="t-wd-wrap" style="display:${t&&t.repeat&&t.repeat.freq==='weekly'?'':'none'}"><label>每逢</label><select id="t-wd">${WEEKDAY_NAMES.map((n,i)=>`<option value="${i}" ${t&&t.repeat&&+t.repeat.weekday===i?'selected':''}>${n}</option>`).join('')}</select></div>
+  </div>
+  <div class="muted" style="margin:-2px 0 5px;font-size:12px">选「每周重复」后：学期内<b>每个所选星期</b>都会在日历和待办里出现这条任务，<b>前一天</b>会多一条「准备：任务名」提醒你复习；「截止日期」=重复到这天为止（一般保留学期结束）；「预计工时」=每次花多久。</div>
+  <div class="row"><div><label>开始日期（可选，默认自动安排）</label><input type="date" id="t-start" value="${t?t.startDate||'':''}"></div>
+  <div><label>${t?'当前进度 %（无子任务时生效）':'进度 %'}</label><input type="number" id="t-prog" min="0" max="100" value="${t?taskProgress(t):0}"></div></div>
+  <label>子任务 / 具体步骤（每行一个）</label>
+  <div class="muted" style="margin:-2px 0 5px;font-size:12px">这些会按截止日期自动摊到每天的待办里，勾掉一条子任务，任务进度就往前走一格。<b>尽量写成能动手做的具体动作</b>，别写任务标题的另一种说法。</div>
+  <textarea id="t-subs" rows="4" placeholder="例如：&#10;复习第 1-3 章并整理公式卡&#10;做历年真题 2020-2023 共 4 套&#10;把错题抄进错题本">${t&&t.subtasks?esc(t.subtasks.map(s=>s.name).join('\n')):''}</textarea>
+  <label>前置任务（需先完成，可选多个）</label>
+  <div style="max-height:110px;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:6px 10px">
+  ${S.tasks.filter(x=>!t||x.id!==t.id).map(x=>`<label style="display:flex;align-items:center;gap:6px;margin:3px 0;color:var(--ink);font-size:13px">
+    <input type="checkbox" style="width:auto" value="${x.id}" ${t&&(t.dependencies||[]).includes(x.id)?'checked':''} onchange="void 0"> ${esc(x.name)} <span class="muted">（${esc(courseName(x.courseId))} · ${fmtMD(x.dueDate)}）</span></label>`).join('')||'<span class="muted">暂无其他任务</span>'}
+  </div>
+  <label>备注 / 硬性要求</label><textarea id="t-notes" rows="2">${esc(t?t.notes:'')}</textarea>
+  <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end">
+    ${t?'<button class="btn danger" onclick="delTask(\''+t.id+'\');closeModal()">删除任务</button>':''}
+    <button class="btn ghost" onclick="closeModal()">取消</button>
+    <button class="btn" onclick="saveTask('${id||''}')">保存</button>
+  </div>`);
+}
+function saveTask(id){
+  const name=$('#t-name').value.trim();if(!name){alert('请填写任务名称');return}
+  const deps=[...document.querySelectorAll('#modal-root input[type=checkbox]:checked')].map(x=>x.value);
+  const subs=$('#t-subs').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  const rfreq=$('#t-repeat')?$('#t-repeat').value:'';
+  const data={courseId:$('#t-course').value,name,type:$('#t-type').value,weight:+$('#t-weight').value||0,
+    dueDate:$('#t-due').value||S.semester.end,estHours:+$('#t-est').value||4,startDate:$('#t-start').value,
+    notes:$('#t-notes').value.trim(),dependencies:deps,
+    repeat:rfreq?{freq:rfreq,weekday:+$('#t-wd').value}:null,
+    subtasks:subs.map(nm=>{
+      const old=id&&S.tasks.find(x=>x.id===id)?S.tasks.find(x=>x.id===id).subtasks.find(s=>s.name===nm):null;
+      return old||{id:uid(),name:nm,done:false};
+    })};
+  if(id){
+    const t=S.tasks.find(x=>x.id===id);Object.assign(t,data);
+    const mp=+$('#t-prog').value;t.manualProgress=(t.subtasks.length)?null:(mp>=100?(t.done=true,100):mp);
+  }else{
+    S.tasks.push({id:uid(),done:false,manualProgress:0,...data});
+  }
+  save();closeModal();render();
+}
+function delTask(id){
+  if(confirm('删除该任务？')){S.tasks=S.tasks.filter(t=>t.id!==id);S.tasks.forEach(t=>{if(t.dependencies)t.dependencies=t.dependencies.filter(d=>d!==id)});save();render()}
+}
+function addTodoModal(){
+  const ds=todoMode==='day'?todoDate:todoMode==='week'?(todoWkStart||weekStartOf(todayStr())):todayStr();
+  openModal(`<h3>添加自定义待办</h3>
+  <label>日期</label><input type="date" id="td-date" value="${ds}">
+  <label>内容 *</label><input id="td-text" placeholder="例如：去图书馆还书">
+  <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end">
+    <button class="btn ghost" onclick="closeModal()">取消</button>
+    <button class="btn" onclick="saveTodoItem()">添加</button>
+  </div>`);
+}
+function saveTodoItem(){
+  const ds=$('#td-date').value||todayStr();const text=$('#td-text').value.trim();
+  if(!text){alert('请填写内容');return}
+  (S.todos[ds]=S.todos[ds]||[]).push({id:uid(),text,done:false,source:'custom'});
+  save();closeModal();renderTodo(false);
+}
+
+/* ================= 文档解析（PDF / 文本） ================= */
+function pdfReady(){
+  if(typeof pdfjsLib==='undefined')return false;
+  if(!pdfReady._init){try{pdfjsLib.GlobalWorkerOptions.workerSrc='vendor/pdf.worker.min.js';pdfReady._init=true}catch(e){return false}}
+  return true;
+}
+async function pdfToText(file){
+  if(!pdfReady())throw new Error('PDF 解析组件没加载成功，请刷新页面后重试');
+  const buf=await file.arrayBuffer();
+  const doc=await pdfjsLib.getDocument({data:buf}).promise;
+  const total=doc.numPages,pages=Math.min(total,40);
+  let out='';
+  for(let i=1;i<=pages;i++){
+    const page=await doc.getPage(i);
+    const tc=await page.getTextContent();
+    // 按纵坐标断行，尽量还原原文换行
+    const lines=[];let line='',lastY=null;
+    tc.items.forEach(it=>{
+      const y=(it.transform&&it.transform.length>=6)?Math.round(it.transform[5]):null;
+      if(lastY!==null&&y!==null&&Math.abs(y-lastY)>2){lines.push(line);line=''}
+      line+=it.str||'';lastY=y;
+    });
+    if(line)lines.push(line);
+    out+=(i>1?'\n':'')+'【第 '+i+' 页】\n'+lines.join('\n');
+  }
+  if(total>pages)out+='\n\n（文档共 '+total+' 页，已提取前 '+pages+' 页）';
+  return out.replace(/[ \t]+\n/g,'\n').replace(/\n{3,}/g,'\n\n').trim();
+}
+async function readTextFile(file){
+  const buf=await file.arrayBuffer();
+  let s=new TextDecoder('utf-8').decode(buf);
+  const bad=(s.match(/\uFFFD/g)||[]).length;
+  if(bad>0&&bad>s.length*0.02){        // 疑似 GBK 编码的中文文本
+    try{const alt=new TextDecoder('gbk').decode(buf);if((alt.match(/\uFFFD/g)||[]).length<bad)s=alt}catch(e){}
+  }
+  return s;
+}
+/* ===== Word / PPT / Excel 文字提取 =====
+   .docx/.pptx/.xlsx 本质是 ZIP+XML：用本地 vendor/jszip.min.js 解包（与 pdf.js 一样离线可用），
+   按段落还原换行后剥掉 XML 标签。旧版二进制 .doc/.ppt 不是 zip，走 legacyOfficeToText 粗提取。 */
+function unescXml(s){
+  return String(s).replace(/&#x([0-9a-fA-F]+);/g,(_,h)=>String.fromCodePoint(parseInt(h,16)))
+    .replace(/&#(\d+);/g,(_,d)=>String.fromCodePoint(+d))
+    .replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'")
+    .replace(/&amp;/g,'&');
+}
+function xmlToText(xml){   // 段落→换行、表格单元格/制表→\t，其余标签剥掉
+  return unescXml(String(xml)
+    .replace(/<\/w:p>/g,'\n').replace(/<w:p\b[^>]*\/>/g,'\n')
+    .replace(/<\/a:p>/g,'\n').replace(/<a:p\b[^>]*\/>/g,'\n')
+    .replace(/<w:tab\b[^>]*\/>/g,'\t').replace(/<a:tab\b[^>]*\/>/g,'\t')
+    .replace(/<w:br\b[^>]*\/>/g,'\n').replace(/<a:br\b[^>]*\/>/g,'\n')
+    .replace(/<\/w:tc>/g,'\t')
+    .replace(/<[^>]+>/g,''))
+    .replace(/[ \t]+\n/g,'\n').replace(/\n{3,}/g,'\n\n').replace(/^\n+/,'').trim();
+}
+function zipReady(){if(typeof JSZip==='undefined')throw new Error('本地组件 jszip 未加载（app/vendor/jszip.min.js 缺失，或页面缓存未刷新）')}
+async function zipDocText(file,re){
+  zipReady();
+  const zip=await JSZip.loadAsync(await file.arrayBuffer());
+  const names=Object.keys(zip.files).filter(n=>re.test(n)&&!zip.files[n].dir)
+    .sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));   // slide2 排在 slide10 前面
+  if(!names.length)throw new Error('文件里找不到正文（可能不是标准的 Office 文件）');
+  let out='';
+  for(const n of names)out+=xmlToText(await zip.files[n].async('string'))+'\n\n';
+  return out.trim();
+}
+async function docxToText(file){return zipDocText(file,/^word\/(document|header\d*|footer\d*)\.xml$/i)}
+async function pptxToText(file){return zipDocText(file,/^ppt\/slides\/slide\d+\.xml$/i)}
+async function xlsxToText(file){return zipDocText(file,/^xl\/sharedStrings\.xml$/i)}
+async function legacyOfficeToText(file){   // 旧版 .doc/.ppt：二进制里捞可读片段（效果有限，提示用户转新格式）
+  if(typeof TextDecoder==='undefined')return '';
+  const buf=await file.arrayBuffer();
+  const run=/(?:[\u4e00-\u9fff\u3400-\u4dbf]|[A-Za-z0-9，。、；：！？（）【】《》“”‘’%·…\-\/ ]){5,}/g;
+  let best='';
+  for(const enc of['utf-16le','gbk','utf-8']){
+    let s='';try{s=new TextDecoder(enc).decode(buf)}catch(e){continue}
+    const cand=(s.match(run)||[]).join('\n');
+    if(cand.length>best.length)best=cand;
+  }
+  return best;
+}
+async function attachSyllabus(inp,targetId,noteId){
+  const f=inp.files&&inp.files[0];if(!f)return;
+  inp.value='';
+  const ta=document.getElementById(targetId);
+  const note=noteId?document.getElementById(noteId):null;
+  const say=m=>{if(note)note.textContent=m};
+  const mb=f.size/1024/1024;
+  try{
+    let text='';
+    const nm=(f.name||'').toLowerCase();
+    const legacy=/\.(doc|ppt)$/.test(nm);
+    if(/\.pdf$/.test(nm)||f.type==='application/pdf'){
+      say('正在提取 PDF 文字…（'+f.name+'，'+mb.toFixed(1)+' MB）'+(mb>5?'，文件较大请稍候':''));
+      text=await pdfToText(f);
+    }else if(/\.docx$/.test(nm)){
+      say('正在提取 Word 文字…（'+f.name+'，'+mb.toFixed(1)+' MB）'+(mb>5?'，文件较大请稍候':''));
+      text=await docxToText(f);
+    }else if(/\.pptx$/.test(nm)){
+      say('正在提取 PPT 文字…（'+f.name+'，'+mb.toFixed(1)+' MB）'+(mb>5?'，文件较大请稍候':''));
+      text=await pptxToText(f);
+    }else if(/\.xlsx$/.test(nm)){
+      say('正在提取 Excel 文字…（'+f.name+'）');
+      text=await xlsxToText(f);
+    }else if(legacy){
+      say('正在读取 '+f.name+' …（旧版格式，提取效果有限）');
+      text=await legacyOfficeToText(f);
+    }else{
+      say('正在读取 '+f.name+' …');
+      text=await readTextFile(f);
+    }
+    text=(text||'').trim();
+    if(!text){say('⚠️ 没提取到文字。若这是扫描件 / 图片型文档（整页是图片），需要先做文字识别；旧版 .doc/.ppt 建议另存为 .docx/.pptx 或 PDF。也可以直接手动粘贴。');return}
+    if(ta){
+      const cur=ta.value.trim();
+      ta.value=cur?cur+'\n\n'+text:text;
+      say('✅ 已提取 '+text.length+' 字并填入文本框（来自 '+f.name+'）。'+(legacy?'旧版格式提取效果有限，若文字缺漏，建议另存为 .docx/.pptx 或 PDF 再传一次。':'')+'核对无误后记得保存。');
+    }
+  }catch(e){say('❌ 读取失败：'+((e&&e.message)||e))}
+}
+
+/* ================= 粘贴图片识别（课程 + 任务）=================
+   用途：把教务系统截图 / 课程表照片 / 老师发的通知截图直接 Ctrl+V 丢进来，
+   交给支持「图片输入」的模型（多模态）识别出课程名称、教师、上课时间与硬性任务。
+   仅当接口支持图片时可用；纯文本模型（如 deepseek-flash）会返回明确提示。 */
+const IMG_MAX=6;          // 一次最多几张
+let IMG_LIST=[];          // [{idUrl,dataUrl,name}]
+const IMG_VISION_HINT='<b>提示</b>：图片识别需要模型本身支持「看图」。若提示接口不接受图片，请到「设置」把模型换成支持视觉的（如 gpt-4o / gpt-4o-mini / qwen-vl-plus / glm-4v 等），或改用「AI 解析课程大纲」粘贴文字、上传文件（PDF / Word / PPT）。';
+
+function imgParseModal(){
+  IMG_LIST=[];window.__imgRes=null;
+  openModal(`<h3><i class="ic" data-ic="image"></i> 粘贴图片识别课程与任务</h3>
+  <div class="tip" style="margin-top:4px">把 <b>课程表截图 / 教务系统页面截图 / 老师发的作业通知截图</b> 复制后，在虚线框里按 <b>Ctrl+V</b> 粘贴（Mac 按 ⌘V）；也可以把图片文件直接拖进来，或点下方按钮选择文件。识别后你可以逐条核对再导入。</div>
+  <div class="drop-paste" id="img-drop" tabindex="0">
+    <i class="ic" data-ic="image"></i> 点这里再按 <b>Ctrl + V</b> 粘贴图片<br>
+    <span class="muted">支持 截图 / png / jpg，一次最多 ${IMG_MAX} 张，可拖拽图片文件进来</span>
+    <div style="display:flex;gap:8px;justify-content:center;margin-top:10px">
+      <label class="btn ghost sm" style="cursor:pointer;margin:0"><i class="ic" data-ic="tray"></i> 选择图片文件
+        <input type="file" accept="image/*" multiple style="display:none" onchange="imgFromFiles(this.files);this.value=''">
+      </label>
+      <button class="btn ghost sm" onclick="imgClearAll()">清空</button>
+    </div>
+  </div>
+  <div class="pv-wrap" id="img-pv"></div>
+  <div id="img-note" class="muted" style="margin-top:8px"></div>
+  <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">
+    <button class="btn ghost" onclick="closeModal()">取消</button>
+    <button class="btn" id="img-run" onclick="runImageParse()"><i class="ic" data-ic="wand"></i> 开始识别</button>
+  </div>
+  <div id="img-result" style="margin-top:10px"></div>`);
+  const dz=$('#img-drop');
+  dz.addEventListener('paste',onPasteImage,true);
+  dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('over')});
+  dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
+  dz.addEventListener('drop',e=>{
+    e.preventDefault();dz.classList.remove('over');
+    const fs=e.dataTransfer&&e.dataTransfer.files;
+    if(fs&&fs.length)imgFromFiles(fs);
+    else imgNote('没读到图片文件，试试先截图再按 Ctrl+V 粘贴。');
+  });
+  setTimeout(()=>{try{dz.focus()}catch(e){}},60);
+}
+function imgNote(m,cls){
+  const n=$('#img-note');if(!n)return;
+  n.innerHTML=m;
+  n.style.color=cls==='bad'?'#c9566f':(cls==='ok'?'#c25d8a':'');
+}
+function onPasteImage(e){
+  const dt=e.clipboardData;if(!dt)return;
+  const items=dt.items?[...dt.items]:[];
+  const imgs=items.filter(it=>it.kind==='file'&&/^image\//.test(it.type||''));
+  let files=imgs.map(it=>it.getAsFile()).filter(Boolean);
+  if(!files.length&&dt.files&&dt.files.length){
+    files=[...dt.files].filter(f=>/^image\//.test(f.type||''));
+  }
+  if(!files.length){imgNote('剪贴板里没有图片。请先用截图工具截图（或复制图片），再回到这个框里按 Ctrl+V。','bad');return}
+  e.preventDefault();e.stopPropagation();
+  addImages(files);
+}
+function imgFromFiles(fl){
+  const files=fl?[...fl].filter(f=>/^image\//.test(f.type||'')):[];
+  if(!files.length){imgNote('这些不是图片文件（只支持 png / jpg / webp 等）。','bad');return}
+  addImages(files);
+}
+function addImages(files){
+  const room=IMG_MAX-IMG_LIST.length;
+  if(room<=0){imgNote('最多 '+IMG_MAX+' 张，请先删掉几张再添加。','bad');return}
+  const take=files.slice(0,room);
+  let left=take.length;
+  take.forEach((f,i)=>{
+    const fr=new FileReader();
+    fr.onload=()=>{
+      IMG_LIST.push({idUrl:'img'+Date.now()+'_'+i+Math.random().toString(36).slice(2,5),dataUrl:fr.result,name:f.name||('图片'+(IMG_LIST.length+1))});
+      if(--left===0){
+        imgRenderPv();
+        imgNote('✅ 已添加 '+take.length+' 张，共 '+IMG_LIST.length+' 张。点下方「开始识别」。','ok');
+      }
+    };
+    fr.onerror=()=>{if(--left===0)imgRenderPv();imgNote('有图片读取失败，请重试。','bad')};
+    fr.readAsDataURL(f);
+  });
+}
+function imgRenderPv(){
+  const box=$('#img-pv');if(!box)return;
+  box.innerHTML=IMG_LIST.map((im,i)=>`<div class="pv-box" style="margin:0 8px 8px 0">
+    <img src="${im.dataUrl}" alt="待识别图片 ${i+1}">
+    <button class="pv-x" title="移除这张" onclick="imgRemove(${i})">×</button>
+  </div>`).join('');
+}
+function imgRemove(i){IMG_LIST.splice(i,1);imgRenderPv();imgNote(IMG_LIST.length?'还剩 '+IMG_LIST.length+' 张。':'已清空，可继续粘贴图片。')}
+function imgClearAll(){IMG_LIST=[];window.__imgRes=null;imgRenderPv();const r=$('#img-result');if(r)r.innerHTML='';imgNote('已清空，可继续粘贴图片。')}
+
+/* 把一批图片交给模型：多模态时用 content 数组，失败且未指定格式时自动退回纯字符串 */
+async function callAIImages(prompt,imgs){
+  const a=S.settings.ai;
+  if(MODE!=='server'){
+    // 网页版（云端/本机模式）直连：接口需允许浏览器跨域（DeepSeek 已实测支持），且模型要能看图。
+    // imageFormat 兜底是本地服务特有参数，直连走标准 OpenAI vision 形状
+    const content=[{type:'text',text:prompt}].concat(imgs.map(im=>({type:'image_url',image_url:{url:im.dataUrl}})));
+    let r;
+    try{
+      r=await fetch(a.endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+a.key},
+        body:JSON.stringify({model:a.model,messages:[{role:'user',content:content}],temperature:0.1})});
+    }catch(e){
+      throw new Error('浏览器直连 AI 接口失败（跨域拦截或网络不通）。DeepSeek 接口支持直连，请检查接口地址；或改在电脑上用本地服务版识别');
+    }
+    let j=null;try{j=await r.json()}catch(e){}
+    if(!r.ok)throw new Error((j&&j.error&&j.error.message)||('接口返回 HTTP '+r.status));
+    const c=j&&j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content;
+    if(!c||/tool_use_failed|not supported|不支持|fail_to_fetch_image|没有识别到内容/i.test(c)){
+      throw new Error('模型没有返回有效的识别结果——多半是纯文本模型看不了图。换支持视觉的模型（网页版可将接口换成多模态服务），或把截图发到 WorkBuddy 对话里由 AI 解析后用「导入任务 JSON」导入');
+    }
+    return c;
+  }
+  const content=[{type:'text',text:prompt}].concat(imgs.map(im=>({type:'image_url',image_url:{url:im.dataUrl}})));
+  const once=async fmt=>{
+    const r=await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({endpoint:a.endpoint,key:a.key,model:a.model,prompt,content,imageFormat:fmt,temperature:0.1})});
+    if(!r.ok)throw new Error('本机数据服务返回 HTTP '+r.status);
+    const j=await r.json();
+    if(!j.ok)throw new Error(j.error||'识别失败');
+    return {content:j.content||'',sent:j.sent||''};
+  };
+  let res=await once(undefined);
+  if(!res.sent&&/tool_use_failed|not supported|不支持|fail_to_fetch_image|没有识别到内容/i.test(res.content)){
+    res=await once('input_text');
+  }
+  return res.content;
+}
+async function runImageParse(){
+  const btn=$('#img-run');
+  if(!IMG_LIST.length){imgNote('还没有图片。请先截图，再在这个框里按 Ctrl+V 粘贴。','bad');return}
+  const a=S.settings.ai;
+  if(!a.key){imgNote('还没配置 AI 接口。请到「设置 → AI 解析设置」填接口地址和 Key（图片识别必须走 AI）。','bad');return}
+  if(btn){btn.disabled=true;btn.textContent='识别中…'}
+  $('#img-result').innerHTML='<div class="muted">正在识别图片，通常需要几秒到十几秒，请稍候…</div>';
+  const prompt=`你是教务助理。请阅读用户提供的图片（课程表截图 / 教务系统截图 / 老师发的作业通知等），提取其中的大学课程与硬性任务。
+
+输出严格的 JSON 对象，不要输出任何其他文字、不要用代码块。格式：
+{"courses":[{"name":"课程名称","teacher":"教师，没有则空串","schedule":"上课时间，如 周一 3-4 节，没有则空串"}],
+ "tasks":[{"courseName":"所属课程名称，必须与上面 courses 里的名称一致","name":"任务名","type":"考试|作业|实验|报告|项目|答辩|预习/阅读|其他","weight":0,"dueDate":"YYYY-MM-DD","estHours":4,"repeat":"","weekday":0,"notes":"硬性要求摘要，如闭卷、字数要求、小组","subtasks":["准备步骤1","准备步骤2"]}]}
+
+要求：
+1. 图片里出现几门课就写几门；看不清的字段留空串或 0，不要瞎编。
+2. dueDate 一律 YYYY-MM-DD。图片只给「第N周」或「M月D日」时，请换算：本学期开始 ${S.semester.start}（第1教学周起点），结束 ${S.semester.end}，今天是 ${todayStr()}。只给周次时按该教学周的周日折算。
+3. weight 是考核占比数字（如 30），没有就给 0。
+4. estHours 是预计投入小时数，按常理估（考试 10-30，作业 2-6，实验 4-10）；每周重复的任务填每次用时。
+5. repeat：任务每周固定重复（如每周小测、每周交作业）时输出 "weekly"，并给 weekday（0=周日，1=周一，2=周二…6=周六）；一次性任务输出 ""。
+6. **subtasks 最重要**：这些会直接变成学生每天的待办事项，必须拆成「当天能动手做完的具体动作」，不能是任务标题的换一种说法。
+   - 每条带动作动词 + 明确范围/数量，看完就知道要干什么、干完没有。如「复习第 1-3 章并整理公式卡」「做 2020-2023 共 4 套真题」「写 300 字报告提纲」。
+   - 禁止出现「复习」「准备考试」「写报告」这类笼统说法。
+   - 按真实工作量拆 3-8 条，覆盖准备→执行→收尾，条与条不重复，顺序即推进顺序。
+   - 图片里信息不足以拆解时，就按这类任务的常识拆分；实在无法拆给空数组。
+7. 图片里如果只是纯文字没有表格，也同样按上面结构输出。
+8. 什么都识别不出来时，输出 {"courses":[],"tasks":[]}。`;
+  try{
+    const raw=await callAIImages(prompt,IMG_LIST);
+    const obj=pickResultJSON(raw);
+    const courses=Array.isArray(obj.courses)?obj.courses:[];
+    const tasks=Array.isArray(obj.tasks)?obj.tasks:[];
+    if(!courses.length&&!tasks.length)throw new Error('图片里没识别出课程或任务，换一张更清晰的截图再试试');
+    imgShowResult(courses,tasks);
+  }catch(e){
+    $('#img-result').innerHTML=`<div class="tip" style="background:#fdeef2;border-color:#f7d4de;color:#c9566f">识别失败：${esc((e&&e.message)||e)}<br>${IMG_VISION_HINT}</div>`;
+  }
+  if(btn){btn.disabled=false;btn.innerHTML='<i class="ic" data-ic="wand"></i> 开始识别'}
+}
+/* 容错解析：对象 / 数组 / 代码块包裹 / 前后夹带文字 都能捞出来 */
+function pickResultJSON(content){
+  let txt=String(content==null?'':content).replace(/```json|```/g,'```').replace(/```[a-zA-Z]*\s*/g,'').trim();
+  if(!txt)throw new Error('模型没有返回内容（可能模型不支持图片输入）');
+  const cand=[];
+  const ob=txt.match(/\{[\s\S]*\}/);if(ob)cand.push(ob[0]);
+  const ar=txt.match(/\[[\s\S]*\]/);if(ar)cand.push(ar[0]);
+  cand.push(txt);
+  for(const c of cand){
+    try{
+      const j=JSON.parse(c);
+      if(Array.isArray(j))return {courses:[],tasks:j};
+      if(j&&typeof j==='object')return j;
+    }catch(e){}
+  }
+  throw new Error('模型返回的不是 JSON（可能模型不支持图片输入）');
+}
+function guessTaskType(name){
+  if(/考试|测验|机考|补考/.test(name))return'考试';
+  if(/实验|上机|实训|lab/i.test(name))return'实验';
+  if(/答辩/.test(name))return'答辩';
+  if(/项目|设计|大作业/.test(name))return'项目';
+  if(/报告|论文|综述|读书笔记/.test(name))return'报告';
+  if(/预习|阅读|文献|看书/.test(name))return'预习/阅读';
+  if(/作业|习题|练习|提交/.test(name))return'作业';
+  return'其他';
+}
+
+/* ================= AI 结果可编辑表单（大纲解析 / 图片识别共用） =================
+   设计：AI 结果一旦落到页面上就变成「可编辑表单」，用户在导入前可以随便改。
+   数据始终以「表单里的当前值」为准（读 DOM），不再依赖 __imgRes / __aiRes 的原始值。
+   state 结构：{ tasks:[{...,subs:[{id,name}]}], courses:[...] }，各自挂在自己那个容器上。 */
+
+/* —— 子任务行操作：改 / 删 / 上下移 / 新增 ——
+   统一用 data 属性定位，避免把索引写死在 onclick 里（增删后索引会变）。 */
+function aiSubMove(btn,dir){
+  const row=btn.closest('.ai-sub-row');
+  const box=row.parentNode;
+  if(dir<0&&row.previousElementSibling)box.insertBefore(row,row.previousElementSibling);
+  else if(dir>0&&row.nextElementSibling)box.insertBefore(row.nextElementSibling,row);
+  else return;
+  hydrateIcons(box);
+}
+function aiSubDel(btn){
+  const row=btn.closest('.ai-sub-row');
+  const box=row.parentNode;
+  row.remove();
+  aiSyncSubEmpty(box);
+}
+function aiSubAdd(btn,boxId){
+  const box=$('#'+boxId);if(!box)return;
+  const row=document.createElement('div');
+  row.className='ai-sub-row';
+  row.innerHTML=`<input type="text" class="ai-sub-in" placeholder="具体做什么（带动作和数量）">
+    <button type="button" class="btn ghost mini" title="上移" onclick="aiSubMove(this,-1)"><i class="ic" data-ic="up"></i></button>
+    <button type="button" class="btn ghost mini" title="下移" onclick="aiSubMove(this,1)"><i class="ic" data-ic="down"></i></button>
+    <button type="button" class="btn danger ai-x" title="删掉这条" onclick="aiSubDel(this)">×</button>`;
+  box.appendChild(row);
+  hydrateIcons(row);
+  const inp=row.querySelector('.ai-sub-in');
+  if(inp)inp.focus();
+  aiSyncSubEmpty(box);
+}
+/* 子任务全删空时给个提示，避免用户以为坏了 */
+function aiSyncSubEmpty(box){
+  if(!box)return;
+  const has=box.querySelector('.ai-sub-row');
+  const hint=box.parentNode.querySelector('.ai-subs-empty');
+  if(hint)hint.style.display=has?'none':'block';
+}
+/* 删掉整条任务（本次不导入）。勾选框同步取消，导入时自然跳过。 */
+function aiDropTask(btn){
+  const card=btn.closest('.ai-edit');
+  if(!card)return;
+  card.classList.add('off');
+  const cb=card.querySelector('input[type=checkbox]');
+  if(cb)cb.checked=false;
+  toast('这条已标记为不导入');
+}
+function imgShowResult(courses,tasks){
+  const exist=C=>{const k=String(C||'').trim().toLowerCase();return S.courses.find(c=>String(c.name).trim().toLowerCase()===k)};
+  const plan=[];           // [{name,teacher,schedule,isNew}]
+  (courses||[]).forEach(c=>{
+    const nm=String(c&&c.name||'').trim();if(!nm||exist(nm))return;
+    if(plan.some(x=>x.name.toLowerCase()===nm.toLowerCase()))return;
+    plan.push({name:nm,teacher:String((c&&c.teacher)||'').trim(),schedule:String((c&&c.schedule)||'').trim(),isNew:true});
+  });
+  const entries=[];
+  (tasks||[]).forEach(t=>{
+    if(!t||!t.name)return;
+    const nm=String(t.name).trim();
+    let key=String(t.courseName||'').trim();
+    if(!key){
+      const hit=plan.find(x=>nm.indexOf(x.name)===0)||S.courses.find(c=>nm.indexOf(c.name)===0);
+      key=hit?hit.name:(S.courses[0]?S.courses[0].name:(plan[0]?plan[0].name:''));
+    }
+    if(key&&!exist(key)&&!plan.some(x=>x.name===key))plan.push({name:key,teacher:'',schedule:'',isNew:true});
+    entries.push({
+      courseName:key||'未分类',
+      name:nm,
+      type:(TYPES.includes(t.type)?t.type:guessTaskType(nm)),
+      weight:(+t.weight)||0,
+      dueDate:(/^\d{4}-\d{2}-\d{2}$/.test(t.dueDate||'')?t.dueDate:S.semester.end),
+      estHours:(+t.estHours)||4,
+      notes:String(t.notes||'').trim(),
+      subtasks:(Array.isArray(t.subtasks)?t.subtasks:[]).map(s=>String(s)).filter(Boolean).slice(0,8)
+    });
+  });
+  window.__imgRes={courses:plan,tasks:entries};
+  // 任务卡片的课程下拉：已有课程 + 识别到的新课程，合成一份候选列表
+  const courseNames=[...S.courses.map(c=>c.name),...plan.map(c=>c.name)].filter((v,i,a)=>v&&a.indexOf(v)===i);
+  $('#img-result').innerHTML=`
+    <div class="tip"><i class="ic" data-ic="target"></i> 识别完成。下面课程和任务<b>每一栏都能直接改</b>——改名字、改课程、改日期、增删子任务都行。确认无误再导入。</div>
+    ${plan.length?`<div style="margin:8px 0 4px"><b style="font-size:13px"><i class="ic" data-ic="cat"></i> 识别到 ${plan.length} 门课程</b>
+      <span class="muted" style="font-size:12px">（已存在的课程不会重复建）</span></div>
+    <div id="img-courses">
+    ${plan.map((c,i)=>`<div class="ai-edit" data-i="${i}" data-orig="${esc(c.name)}" style="padding:9px 12px">
+      <div class="ai-edit-head">
+        <input type="checkbox" checked style="width:auto" data-k="c" data-i="${i}">
+        <input type="text" class="ic-f-name" value="${esc(c.name)}" placeholder="课程名称">
+        <span class="ai-tag-new">${c.isNew?'新建':'已存在'}</span>
+      </div>
+      <div class="ai-edit-fields">
+        <div><label>教师</label><input type="text" class="ic-f-teacher" value="${esc(c.teacher||'')}" placeholder="未识别"></div>
+        <div><label>上课时间</label><input type="text" class="ic-f-sched" value="${esc(c.schedule||'')}" placeholder="如 周一 3-4 节"></div>
+      </div>
+    </div>`).join('')}
+    </div>`:''}
+    ${entries.length?`<div style="margin:14px 0 4px"><b style="font-size:13px"><i class="ic" data-ic="list"></i> 识别到 ${entries.length} 个任务</b></div>
+    <div id="img-tasks">
+      ${entries.map((t,i)=>aiTaskCardHTML(t,i,{kind:'img',boxPrefix:'img-subs-',courses:courseNames.map(n=>({name:n}))})).join('')}
+    </div>`:''}
+    <div style="margin-top:6px"><label style="display:flex;align-items:center;gap:6px;margin:0;color:var(--ink);font-size:13px">
+      <input type="checkbox" id="img-bind" checked style="width:auto"> 导入时，若任务名以课程名开头，自动把课程名抠掉（如「高数 期中考试」→「期中考试」）
+    </label></div>
+    <div style="text-align:right;margin-top:12px"><button class="btn" onclick="imgApply()">导入所选</button></div>`;
+  hydrateIcons($('#img-result'));
+}
+function imgApply(){
+  if(!window.__imgRes){alert('没有可导入的内容，请先识别');return}
+  // 课程：从表单读（用户可能改过名字 / 教师 / 时间）
+  const cCards=[...document.querySelectorAll('#img-courses .ai-edit')];
+  const cSel=cCards.filter(card=>{const cb=card.querySelector('input[type=checkbox]');return cb&&cb.checked});
+  if(!cCards.length&&!document.querySelectorAll('#img-tasks .ai-edit').length){alert('什么都没识别到');return}
+  const strip=!!($('#img-bind')&&$('#img-bind').checked);
+  let nc=0,nt=0;
+  const idOf={};
+  const alias={};   // AI 给的原始课程名 → 实际课程名（用户改过名时要靠它把任务指对）
+  S.courses.forEach(c=>idOf[c.name]=c.id);
+  cSel.forEach(card=>{
+    const name=(card.querySelector('.ic-f-name').value||'').trim();
+    const orig=(card.dataset.orig||'').trim();
+    if(!name)return;
+    if(orig&&orig!==name)alias[orig]=name;
+    if(idOf[name])return;
+    const oc={id:uid(),name,color:PALETTE[S.courses.length%PALETTE.length],
+      teacher:(card.querySelector('.ic-f-teacher').value||'').trim(),
+      schedule:(card.querySelector('.ic-f-sched').value||'').trim(),syllabus:''};
+    S.courses.push(oc);idOf[name]=oc.id;nc++;
+  });
+  const tCards=[...document.querySelectorAll('#img-tasks .ai-edit')];
+  tCards.forEach(card=>{
+    const cb=card.querySelector('input[type=checkbox]');
+    if(cb&&!cb.checked)return;              // 取消勾选 / 点过「不导入」的都跳过
+    const t=aiReadTask(card);
+    if(!t.name)return;
+    // 用户改过任务的课程下拉？优先用下拉的当前值；否则若原课程被改名了，跟着改名走
+    const pick=card.querySelector('.ai-f-course');
+    const chosen=pick?pick.value:t.courseName;
+    let cName=(pick&&pick.value!==card.dataset.orig)?chosen:(alias[chosen]||chosen);
+    // 任务挂到所选课程下；课程不在列表里就顺手建一个
+    let cid=idOf[cName];
+    if(!cid){
+      const oc={id:uid(),name:cName||'未分类',color:PALETTE[S.courses.length%PALETTE.length],
+        teacher:'',schedule:'',syllabus:''};
+      S.courses.push(oc);idOf[oc.name]=oc.id;cid=oc.id;nc++;
+    }
+    let name=t.name;
+    const cn=t.courseName||'';   // 用 AI 给的原始课程名判断前缀（用户改名不影响这条规则）
+    if(strip&&cn&&name!==cn&&name.indexOf(cn)===0){
+      const cut=name.slice(cn.length).replace(/^[\s\-—–:：|,，、]+/,'').trim();
+      if(cut)name=cut;
+    }
+    S.tasks.push({id:uid(),courseId:cid,name,type:t.type||'其他',weight:t.weight||0,
+      dueDate:t.dueDate||S.semester.end,estHours:t.estHours||4,startDate:'',notes:t.notes||'',
+      dependencies:[],repeat:t.repeat||null,subtasks:t.subtasks.map(nm=>({id:uid(),name:nm,done:false})),
+      done:false,manualProgress:0});
+    nt++;
+  });
+  if(!nc&&!nt){alert('没有可导入的内容（可能都取消勾选了）');return}
+  save();closeModal();
+  toast('已导入 课程 '+nc+' 门 · 任务 '+nt+' 个');
+  go('courses');
+}
+/* ================= AI 解析 ================= */
+function aiParseModal(){
+  if(!S.courses.length){alert('请先添加课程');return}
+  openModal(`<h3><i class="ic" data-ic="wand"></i> AI 解析课程大纲</h3>
+  <label>选择课程</label><select id="ai-course">${S.courses.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select>
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px">
+    <label style="margin:0">大纲文本（默认取课程里粘贴的大纲，可修改补充）</label>
+    <label class="btn ghost sm" style="cursor:pointer;white-space:nowrap;flex:none;margin:0" title="支持 PDF / Word / PPT / Excel / txt / md，自动提取文字">
+      <i class="ic" data-ic="tray"></i> 上传文件<input type="file" accept=".pdf,.txt,.md,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.csv,application/pdf,text/plain" style="display:none" onchange="attachSyllabus(this,'ai-text','ai-syl-note')">
+    </label>
+  </div>
+  <textarea id="ai-text" rows="8" placeholder="粘贴课程大纲，或点上方上传 PDF / Word / PPT 自动提取"></textarea>
+  <div id="ai-syl-note" class="muted" style="margin-top:6px"></div>
+  <div style="margin-top:14px;display:flex;gap:8px;justify-content:flex-end">
+    <button class="btn ghost" onclick="closeModal()">取消</button>
+    <button class="btn" id="ai-run" onclick="runAI()">开始解析</button>
+  </div>
+  <div id="ai-result" style="margin-top:10px"></div>`);
+  $('#ai-course').onchange=()=>{const c=S.courses.find(x=>x.id===$('#ai-course').value);$('#ai-text').value=c.syllabus||''};
+  $('#ai-course').onchange();
+}
+async function callAI(prompt){
+  const a=S.settings.ai;
+  if(MODE==='server'){
+    // 走本机数据服务转发：由服务端代发请求，彻底绕开浏览器跨域限制
+    const r=await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({endpoint:a.endpoint,key:a.key,model:a.model,prompt,temperature:0.2})});
+    if(!r.ok)throw new Error('本机数据服务返回 HTTP '+r.status);
+    const j=await r.json();
+    if(!j.ok)throw new Error(j.error||'解析失败');
+    return pickJSON(j.content);
+  }
+  // 网页版（GitHub Pages）或没连上数据服务时：浏览器直连。
+  // DeepSeek 接口实测允许浏览器跨域直连（2026-09-14 OPTIONS 预检验证），网页版 AI 功能可用
+  let res;
+  try{
+    res=await fetch(a.endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+a.key},
+      body:JSON.stringify({model:a.model,messages:[{role:'user',content:prompt}],temperature:0.2})});
+  }catch(e){
+    throw new Error('浏览器直连 AI 接口失败（跨域拦截或网络不通）。DeepSeek 接口支持直连，请检查接口地址是否填对；其他不允跨域的接口请在电脑上用本地服务版');
+  }
+  if(!res.ok){
+    let msg='接口返回 HTTP '+res.status;
+    try{const ej=await res.json();if(ej&&ej.error&&ej.error.message)msg+='：'+ej.error.message}catch(e2){}
+    throw new Error(msg);
+  }
+  const j=await res.json();
+  return pickJSON(j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content);
+}
+function pickJSON(content){
+  let txt=String(content==null?'':content).replace(/```json|```/g,'').trim();
+  const m=txt.match(/\[[\s\S]*\]/);if(m)txt=m[0];
+  const arr=JSON.parse(txt);
+  if(!Array.isArray(arr))throw new Error('接口没有返回任务列表，请检查模型名是否填对');
+  return arr;
+}
+async function runAI(){
+  const a=S.settings.ai;
+  if(!a.key){alert('请先到「设置」页填写 AI 接口地址、Key 和模型');return}
+  const c=S.courses.find(x=>x.id===$('#ai-course').value);
+  const text=$('#ai-text').value.trim();
+  if(!text){alert('请先粘贴大纲文本，或点「上传文件」导入 PDF/文档');return}
+  if(!c.syllabus){c.syllabus=text;save()}
+  $('#ai-run').disabled=true;$('#ai-run').textContent='解析中…';
+  const prompt=`你是教务助理。下面是大学课程「${c.name}」的课程大纲。请提取所有硬性任务要求（考试、作业、实验、报告、项目、答辩、阅读等），输出严格的 JSON 数组，不要输出任何其他文字。字段：name(任务名),type(考试|作业|实验|报告|项目|答辩|预习/阅读|其他),weight(考核占比数字,没有则0),dueDate(YYYY-MM-DD,大纲没给就根据学期(${S.semester.start}至${S.semester.end})和常理推断,如期末考试放在学期末),estHours(预计投入小时数,数字;每周重复的任务填每次用时),repeat(该任务每周固定重复进行,如每周小测、每次上课都交作业,输出"weekly";一次性任务输出""),weekday(每周几,数字:0=周日,1=周一,2=周二…6=周六;仅repeat为weekly时输出),notes(硬性要求摘要,如闭卷、小组、字数要求等),subtasks(字符串数组,拆分的准备步骤)。
+
+【subtasks 拆解要求（最重要）】这些子任务会直接变成学生每天的待办事项，所以必须拆成「当天能动手做完的具体动作」，而不是任务标题的换一种说法。
+- 每条都要带动作动词 + 明确范围/数量，看完就知道要干什么、干完没有。
+- 好的例子：「复习第 1-3 章并整理公式卡」「做完 2020-2023 共 4 套真题」「写出 300 字报告提纲」「背 50 个单词」。
+- 反例（禁止）：「复习」「准备考试」「写报告」「做作业」——太笼统，无法判断做完没有。
+- 按任务的真实工作量拆成 3-8 条，从准备、执行到收尾（提交/检查）覆盖完整过程，条与条之间不要重复。
+- 顺序就是建议的推进顺序。
+
+课程大纲：
+${text.slice(0,6000)}`;
+  try{
+    const arr=await callAI(prompt);
+    showAIResult(c,arr);
+  }catch(e){
+    const hint=MODE==='server'?'':'<br>若为跨域(CORS)限制，可把大纲发到 WorkBuddy 对话里由助手解析，再用「设置 → 导入任务 JSON」导入。';
+    $('#ai-result').innerHTML=`<div class="tip" style="background:#fdeef2;border-color:#f7d4de;color:#c9566f">解析失败：${esc(e.message)}${hint}<br>可到「设置 → AI 解析设置」点「测试连接」，确认接口地址与 Key 是否正确。</div>`;
+  }
+  $('#ai-run').disabled=false;$('#ai-run').textContent='开始解析';
+}
+/* 单个任务的编辑卡片（大纲解析 / 图片识别共用）
+   kind: 'ai' 大纲解析（课程固定，不显示课程下拉） / 'img' 图片识别（可改课程、可删任务）
+   返回值是 HTML 字符串；子任务容器 id 用 `${boxId}${i}` 保证两处不冲突。 */
+function aiTaskCardHTML(t,i,opt){
+  const boxId=(opt.boxPrefix||'ai-subs-')+i;
+  const subs=Array.isArray(t.subtasks)?t.subtasks:[];
+  const typeOpts=TYPES.map(x=>`<option value="${esc(x)}" ${x===t.type?'selected':''}>${esc(x)}</option>`).join('');
+  const courseSel=opt.courses?`<select class="ai-f-course">${opt.courses.map(c=>`<option value="${esc(c.name)}" ${c.name===t.courseName?'selected':''}>${esc(c.name)}</option>`).join('')}</select>`:'';
+  // data-orig 记住 AI 给的原始课程名：用户若在上方改了课程名，靠它把任务重新指到改名后的课程
+  const origAttr=opt.kind==='img'?` data-orig="${esc(t.courseName||'')}"`:'';
+  return`<div class="ai-edit" data-i="${i}"${origAttr}>
+    <div class="ai-edit-head">
+      <input type="checkbox" ${t.skip?'':'checked'} style="width:auto" data-k="${opt.kind}" data-i="${i}">
+      <input type="text" class="ai-f-name" value="${esc(t.name)}" placeholder="任务名">
+      ${opt.kind==='img'?'<span class="ai-tag-new">'+esc(t.courseName||'未分类')+'</span>':''}
+      ${opt.kind==='img'?`<button type="button" class="btn ghost sm" style="flex:none" onclick="aiDropTask(this)">不导入</button>`:''}
+    </div>
+    <div class="ai-edit-fields">
+      ${opt.kind==='img'?`<div><label>课程</label>${courseSel}</div>`:''}
+      <div><label>类型</label><select class="ai-f-type">${typeOpts}</select></div>
+      <div><label>考核占比 %</label><input type="number" class="ai-f-weight" min="0" max="100" value="${+t.weight||0}"></div>
+      <div><label>截止日期</label><input type="date" class="ai-f-due" value="${esc(t.dueDate)}"></div>
+      <div><label>预计工时 h</label><input type="number" class="ai-f-est" min="0.5" step="0.5" value="${+t.estHours||4}"></div>
+      <div><label>重复</label><select class="ai-f-rep" onchange="var w=this.closest('.ai-edit-fields').querySelector('.ai-f-wd-wrap');if(w)w.style.display=this.value?'':'none'">
+        <option value="">不重复</option>
+        <option value="weekly" ${t.repeat&&t.repeat.freq==='weekly'?'selected':''}>每周</option>
+      </select></div>
+      <div class="ai-f-wd-wrap" style="display:${t.repeat&&t.repeat.freq==='weekly'?'':'none'}"><label>每逢</label><select class="ai-f-wd">${WEEKDAY_NAMES.map((n,i)=>`<option value="${i}" ${t.repeat&&+t.repeat.weekday===i?'selected':''}>${n}</option>`).join('')}</select></div>
+      <div><label>备注 / 硬性要求</label><input type="text" class="ai-f-notes" value="${esc(t.notes||'')}" placeholder="如闭卷、3000字"></div>
+    </div>
+    <div class="ai-subs">
+      <div class="ai-subs-head">
+        <b>子任务（会变成每天的待办）</b>
+        <span class="muted">从上到下就是推进顺序</span>
+        <button type="button" class="btn ghost sm" style="margin-left:auto;flex:none" onclick="aiSubAdd(this,'${boxId}')"><i class="ic" data-ic="plus"></i> 加一条</button>
+      </div>
+      <div id="${boxId}">
+        ${subs.map(s=>`<div class="ai-sub-row">
+          <input type="text" class="ai-sub-in" value="${esc(typeof s==='string'?s:s.name)}" placeholder="具体做什么（带动作和数量）">
+          <button type="button" class="btn ghost mini" title="上移" onclick="aiSubMove(this,-1)"><i class="ic" data-ic="up"></i></button>
+          <button type="button" class="btn ghost mini" title="下移" onclick="aiSubMove(this,1)"><i class="ic" data-ic="down"></i></button>
+          <button type="button" class="btn danger ai-x" title="删掉这条" onclick="aiSubDel(this)">×</button>
+        </div>`).join('')}
+      </div>
+      <div class="ai-subs-empty muted" style="display:${subs.length?'none':'block'}">还没有子任务。写细一点，每天待办才会告诉你要做什么。</div>
+    </div>
+  </div>`;
+}
+/* 从编辑卡片里读回一条任务（以用户改过的当前值为准） */
+function aiReadTask(card){
+  const g=s=>card.querySelector(s);
+  const courseEl=g('.ai-f-course');
+  const repEl=g('.ai-f-rep'),wdEl=g('.ai-f-wd');
+  return{
+    courseName:courseEl?courseEl.value:'',
+    name:(g('.ai-f-name').value||'').trim(),
+    type:g('.ai-f-type').value,
+    weight:+g('.ai-f-weight').value||0,
+    dueDate:g('.ai-f-due').value,
+    estHours:+g('.ai-f-est').value||4,
+    repeat:repEl&&repEl.value?{freq:repEl.value,weekday:wdEl?+wdEl.value:1}:null,
+    notes:(g('.ai-f-notes').value||'').trim(),
+    subtasks:[...card.querySelectorAll('.ai-sub-in')].map(x=>x.value.trim()).filter(Boolean)
+  };
+}
+function showAIResult(course,arr){
+  window.__aiRes=arr;
+  $('#ai-result').innerHTML=`
+    <div class="tip"><i class="ic" data-ic="target"></i> AI 提取出 <b>${arr.length}</b> 个任务。下面每一项都可以直接改——字段、子任务都能编辑，子任务顺序就是推进顺序。改完再点导入。</div>
+    <div id="ai-cards">
+      ${arr.map((t,i)=>aiTaskCardHTML({
+        name:t.name||'未命名任务',
+        type:TYPES.includes(t.type)?t.type:guessTaskType(t.name||''),
+        weight:(+t.weight)||0,
+        dueDate:(/^\d{4}-\d{2}-\d{2}$/.test(t.dueDate||'')?t.dueDate:S.semester.end),
+        estHours:(+t.estHours)||4,
+        repeat:(t.repeat&&t.repeat.freq==='weekly')?{freq:'weekly',weekday:(t.repeat.weekday>=0&&t.repeat.weekday<=6)?+t.repeat.weekday:1}:null,
+        notes:String(t.notes||'').trim(),
+        subtasks:(Array.isArray(t.subtasks)?t.subtasks:[]).map(String).filter(Boolean).slice(0,8)
+      },i,{kind:'ai',boxPrefix:'ai-subs-'})).join('')}
+    </div>
+    <div style="text-align:right;margin-top:12px"><button class="btn" onclick="applyAI('${course.id}')">导入所选到「${esc(course.name)}」</button></div>`;
+  hydrateIcons($('#ai-result'));
+}
+function applyAI(cid){
+  const cards=[...document.querySelectorAll('#ai-cards .ai-edit')];
+  if(!cards.length){alert('没有可导入的任务');return}
+  let n=0;
+  cards.forEach(card=>{
+    const cb=card.querySelector('input[type=checkbox]');
+    if(cb&&!cb.checked)return;              // 取消勾选 / 点过「不导入」的都跳过
+    const t=aiReadTask(card);
+    if(!t.name)return;
+    S.tasks.push({id:uid(),courseId:cid,name:t.name,type:t.type||'其他',weight:t.weight||0,
+      dueDate:t.dueDate&&/^\d{4}-\d{2}-\d{2}$/.test(t.dueDate)?t.dueDate:S.semester.end,
+      estHours:t.estHours||4,startDate:'',notes:t.notes||'',dependencies:[],
+      repeat:t.repeat||null,
+      subtasks:t.subtasks.map(nm=>({id:uid(),name:nm,done:false})),done:false,manualProgress:0});
+    n++;
+  });
+  save();closeModal();
+  toast('已导入 '+n+' 个任务');
+  go('plan');
+}
+
+/* ================= 示例数据 ================= */
+function loadDemo(){
+  if(S.tasks.length&&!confirm('加载示例会追加到现有数据，继续？'))return;
+  const mk=(name,color,teacher,sched,syllabus)=>({id:uid(),name,color,teacher,schedule:sched,syllabus:syllabus||''});
+  const c1=mk('高等数学（下）','#9d8cd2','王老师','周一 1-2 节 · 周四 3-4 节','考核：平时作业20% + 期中考试20% + 期末考试60%（闭卷）。第10周期中考试。第18周期末考试。');
+  const c2=mk('数据结构与算法','#d4a5c9','李老师','周二 3-4 节 · 周五 1-2 节','考核：实验报告30%（共4次）+ 课程设计20%（第15周答辩）+ 期末考试50%。');
+  const c3=mk('大学英语（听说）','#dfa17c','张老师','周三 5-6 节','考核：口语展示20%（第8周）+ 听力测验20%（第12周）+ 期末机考60%。');
+  const c4=mk('马克思主义基本原理','#b48ad2','赵老师','周五 3-4 节','考核：平时论文30%（第11周提交，3000字）+ 期末开卷考试70%。');
+  S.courses.push(c1,c2,c3,c4);
+  const T=(cid,name,type,weight,due,est,notes,subs,deps)=>({id:uid(),courseId:cid,name,type,weight,dueDate:due,estHours:est,notes:notes||'',dependencies:deps||[],subtasks:(subs||[]).map(s=>({id:uid(),name:s,done:false})),done:false,manualProgress:0});
+  S.tasks.push(
+    T(c1.id,'期中考试','考试',20,'2026-11-16',18,'闭卷，范围第1-6章',['通读第1-2章并整理公式卡','通读第3-4章并做课后题','通读第5-6章并做课后题','做完 2023-2025 共 3 套历年期中题','把错题按题型归类','考前 2 天背公式表']),
+    T(c1.id,'期末考试','考试',60,'2027-01-11',30,'闭卷',['按章梳理知识框架','第7-10章例题重做一遍','做完 3 套期末真题','整理 1 页 A4 速查表','考前一周每天 1 小时过公式']),
+    T(c2.id,'实验一：线性表','实验',8,'2026-09-28',6,'C++ 实现，交报告',['实现顺序表增删改查','实现单链表反转','写测试用例跑通','写实验报告（含复杂度分析）']),
+    T(c2.id,'实验二：树与图','实验',8,'2026-10-26',8,'',['手写二叉树三种遍历','实现 DFS 与 BFS','跑通课本图例并截图','写实验报告']),
+    T(c2.id,'实验三：排序算法对比','实验',7,'2026-11-23',8,'包含性能测试',['实现快排、归并、堆排','造 1 万/10 万条数据跑性能','画出耗时对比表','写报告分析适用场景']),
+    T(c2.id,'课程设计：校园导航系统','项目',20,'2026-12-28',30,'第15周答辩，小组项目',['和组员定需求与分工','设计地图数据结构','实现最短路径模块','实现界面与数据整合','自己独立跑通全流程','做答辩 PPT 并试讲一遍'],[]),
+    T(c2.id,'期末考试','考试',50,'2027-01-13',24,'',['过一遍所有课件','重做 4 次实验的核心代码','做完 2 套真题','背常考算法复杂度']),
+    T(c3.id,'口语展示','报告',20,'2026-10-26',8,'3分钟主题演讲',['定主题并查 3 篇素材','写出 3 分钟英文稿','逐句纠音并熟读','录音自听一遍改问题','对着镜子脱稿练 3 遍']),
+    T(c3.id,'听力测验','考试',20,'2026-11-30',6,'',['每天精听 1 段新闻','做完课本 5 套听力题','整理连读与弱读难点']),
+    T(c3.id,'期末机考','考试',60,'2027-01-08',12,'',['做完 2 套模拟题','整理高频词汇表','练一遍机考操作流程']),
+    T(c4.id,'平时论文','报告',30,'2026-11-23',10,'3000字，查重≤20%',['选题并和老师确认','列 3 级提纲','读 5 篇文献做笔记','写 3000 字初稿','改一遍并查重','定稿排版提交']),
+    T(c4.id,'期末考试','考试',70,'2027-01-09',10,'开卷',['整理课程笔记成索引','抄写重点章节目录','标好每章知识点页码'])
+  );
+  // 每周重复示例：数据结构每周二有课 → 随堂小测每个周二出现，前一天出「准备」待办
+  S.tasks.push({id:uid(),courseId:c2.id,name:'随堂小测（每周二）',type:'考试',weight:10,dueDate:S.semester.end,estHours:0.5,
+    notes:'每次上课小测，前一天复习上一节内容',dependencies:[],subtasks:[],done:false,manualProgress:0,
+    repeat:{freq:'weekly',weekday:2}});
+  // 已完成的部分实验体现进度
+  const e1=S.tasks.find(t=>t.name==='实验一：线性表');
+  if(e1){e1.subtasks[0].done=true}
+  const kq=S.tasks.find(t=>t.name==='口语展示');
+  if(kq){kq.subtasks[0].done=true}
+  /* 小红书工作示例 */
+  const mkProj=(name,brand,type,start,deliver,fee,statusArr,notes)=>{
+    const st=stagePlan(start,deliver);
+    WORK_STAGES.forEach((s,i)=>{st[s.key].status=statusArr[i]||0;st[s.key].progress=statusArr[i]===2?100:(statusArr[i]===1?50:0)});
+    S.projects.push({id:uid(),name,brand,type,startDate:start,deliverDate:deliver,fee,notes:notes||'',stages:st});
+  };
+  mkProj('xx品牌护肤新品广告拍摄','XX护肤','品牌广告','2026-09-15','2026-09-28',1500,[2,1,0,0],'客户要求竖屏 60s，需含产品特写 3 个镜头');
+  mkProj('城市咖啡店探店笔记','巷子咖啡','探店笔记','2026-09-20','2026-10-05',600,[1,0,0,0],'图文 9 图，需标注营业时间');
+  mkProj('秋季穿搭种草视频','个人账号','产品种草','2026-10-01','2026-10-20',0,[0,0,0,0],'自运营内容，不带商单');
+  S.income.push(
+    {id:uid(),date:'2026-09-16',amount:800,projectId:S.projects[1].id,note:'探店定金'},
+    {id:uid(),date:'2026-09-20',amount:1200,projectId:S.projects[0].id,note:'广告首款'},
+    {id:uid(),date:'2026-09-05',amount:450,projectId:'',note:'上一条视频尾款'}
+  );
+  save();go('dash');
+}
+
+/* ================= 动效层（GSAP） =================
+   原则：渐进增强——GSAP 不可用时页面完全照常工作；
+   尊重 prefers-reduced-motion；只动画 transform / opacity / SVG 属性，不动 layout 属性。 */
+const FX=(()=>{
+  const G=(typeof window!=='undefined'&&window.gsap)?window.gsap:null;
+  const ST=(typeof window!=='undefined'&&window.ScrollTrigger)?window.ScrollTrigger:null;
+  const on=!!G;
+  let reduce=false,inRender=false,lastEnter=0;
+  const all=(sel,root)=>{try{return Array.from((root||document).querySelectorAll(sel))}catch(e){return[]}};
+  if(on){
+    try{
+      G.defaults({duration:.45,ease:'power2.out'});
+      if(ST&&typeof window.matchMedia==='function')G.registerPlugin(ST);
+      if(typeof G.matchMedia==='function'&&typeof window.matchMedia==='function')
+        G.matchMedia().add({reduce:'(prefers-reduced-motion: reduce)'},c=>{reduce=!!c.conditions.reduce});
+      // 蝴蝶结轻轻浮动 + 顶栏滑入（一次性）
+      G.to('.logo .ic',{y:-3,duration:1.9,ease:'sine.inOut',repeat:-1,yoyo:true});
+      G.from('header',{autoAlpha:0,y:-10,duration:.5});
+    }catch(e){}
+  }
+  function killScroll(){if(ST)try{ST.getAll().forEach(t=>t.kill())}catch(e){}}
+  // 进度条：scaleX 0→1（transform，不触发 layout）
+  function bars(root){
+    if(!on||reduce)return;
+    all('.bar-mini>i,.pbar>i,.goal-bar>i',root).forEach(el=>{
+      G.fromTo(el,{scaleX:0},{scaleX:1,duration:.75,ease:'power2.out',transformOrigin:'left center'});
+    });
+  }
+  // 进度环：描边绘制动画
+  function rings(root){
+    if(!on||reduce)return;
+    all('circle[stroke-dasharray]',root).forEach(el=>{
+      const p=(el.getAttribute('stroke-dasharray')||'').trim().split(/[\s,]+/);
+      if(p.length!==2)return;
+      const c=parseFloat(p[1]);if(!c)return;
+      G.fromTo(el,{attr:{'stroke-dasharray':'0 '+c}},{attr:{'stroke-dasharray':c+' '+c},duration:.9,ease:'power2.out',delay:.05});
+    });
+  }
+  // 纯数字统计量从 0 滚动到目标值
+  function nums(root){
+    if(!on||reduce)return;
+    all('.big',root).forEach(el=>{
+      if(el.children.length)return;
+      const m=(el.textContent||'').trim().match(/^(\d+)(%?)$/);
+      if(!m)return;
+      const to=+m[1];if(to<=0)return;
+      const o={v:0};
+      G.to(o,{v:to,duration:.9,ease:'power2.out',onUpdate:()=>{el.textContent=Math.round(o.v)+m[2]}});
+    });
+  }
+  // 区块级入场（用于局部刷新：待办体、收入区）
+  function enterInto(rootSel){
+    if(!on)return;
+    const root=(typeof rootSel==='string')?document.querySelector(rootSel):rootSel;
+    if(!root)return;
+    const cards=all('.card,.milestone',root);
+    const rows=all('.todo-item,.task-row,.stage',root);
+    if(reduce){bars(root);rings(root);nums(root);return}
+    const tl=G.timeline({defaults:{duration:.4,ease:'power2.out'}});
+    if(cards.length)tl.from(cards,{autoAlpha:0,y:12,stagger:.035,clearProps:'transform'},0);
+    if(rows.length)tl.from(rows,{autoAlpha:0,x:-6,stagger:.02,clearProps:'transform'},.05);
+    bars(root);rings(root);nums(root);
+  }
+  // 页面级入场：视口内的元素依次浮现，视口外的交给 ScrollTrigger 滚入时再出现
+  function enterView(){
+    if(!on)return;
+    const now=Date.now();if(now-lastEnter<90)return;lastEnter=now;
+    const v=(typeof document!=='undefined')&&document.getElementById('view');if(!v)return;
+    killScroll();
+    const kids=Array.from(v.children).filter(el=>el.tagName!=='SCRIPT');
+    if(!kids.length)return;
+    const vh=(typeof window!=='undefined'&&window.innerHeight)||800;
+    const vis=el=>{const r=el.getBoundingClientRect();return r.top<vh*.94&&r.bottom>-30};
+    const cards=all('.card',v),whole=kids.filter(el=>!el.classList.contains('card'));
+    const inCards=cards.filter(vis),belowCards=cards.filter(el=>!vis(el));
+    const inHeads=whole.filter(vis),belowHeads=whole.filter(el=>!vis(el));
+    if(reduce){bars(v);rings(v);nums(v);return}
+    const tl=G.timeline({defaults:{duration:.42,ease:'power2.out'}});
+    if(inHeads.length)tl.from(inHeads,{autoAlpha:0,y:10,stagger:.05,clearProps:'transform'},0);
+    if(inCards.length)tl.from(inCards,{autoAlpha:0,y:16,stagger:.055,clearProps:'transform'},.03);
+    const below=belowCards.concat(belowHeads);
+    if(below.length){
+      if(ST)ST.batch(below,{start:'top 92%',once:true,onEnter:b=>G.from(b,{autoAlpha:0,y:16,duration:.45,stagger:.07,ease:'power2.out',clearProps:'transform'})});
+      else G.from(below,{autoAlpha:0,y:12,stagger:.05,delay:.18,clearProps:'transform'});
+    }
+    bars(v);rings(v);nums(v);
+  }
+  // 单元素回弹（勾选、阶段圆点）
+  function pop(el){if(on&&el&&!reduce)G.fromTo(el,{scale:.7},{scale:1,duration:.45,ease:'back.out(2.4)',clearProps:'scale'})}
+  // 重渲染后按「同类元素序号」找回新节点做回弹 + 柔和高亮
+  function popAfter(get){
+    if(!on||reduce)return;
+    setTimeout(()=>{
+      const el=get();if(!el)return;
+      pop(el);
+      const row=el.closest('.todo-item,.task-row,.stage');
+      if(row)G.fromTo(row,{backgroundColor:'#ffe4f0'},{backgroundColor:'rgba(255,255,255,0)',duration:.9,ease:'power1.out',clearProps:'backgroundColor'});
+    },36);
+  }
+  // 存钱罐：金币依次掉落 + 罐体回弹 + 金额弹跳
+  function coinBurst(){
+    if(!on||reduce)return;
+    setTimeout(()=>{
+      const coins=all('.coin-fall');
+      coins.forEach(c=>{c.style.animation='none'});
+      if(coins.length)G.fromTo(coins,{y:-32,autoAlpha:0},{y:0,autoAlpha:1,duration:.55,stagger:.11,ease:'back.out(1.6)'});
+      const pig=document.querySelector('.pig-wrap');
+      if(pig)G.fromTo(pig,{scale:.96},{scale:1,duration:.65,ease:'elastic.out(1,0.45)',clearProps:'scale'});
+      const tot=document.querySelector('#money-total');
+      if(tot)G.fromTo(tot,{scale:.86},{scale:1,duration:.5,ease:'back.out(2)',clearProps:'scale'});
+    },36);
+  }
+  if(on){
+    // 事件委托：勾选框 / 阶段圆点 / 页签 的轻反馈
+    document.addEventListener('click',e=>{
+      const t=e.target;
+      if(!t||!t.closest)return;
+      const chk=t.closest('.chk');
+      if(chk){const i=all('.chk').indexOf(chk);popAfter(()=>all('.chk')[i]);return}
+      const dot=t.closest('.stage-dot');
+      if(dot){const i=all('.stage-dot').indexOf(dot);popAfter(()=>all('.stage-dot')[i]);return}
+      const tab=t.closest('nav button');
+      if(tab){const i=all('nav button').indexOf(tab);setTimeout(()=>{const el=all('nav button')[i];if(el&&!reduce)G.fromTo(el,{scale:.93},{scale:1,duration:.4,ease:'back.out(2.2)',clearProps:'scale'})},36)}
+    },true);
+  }
+  return {
+    on,enterView,enterInto,coinBurst,pop,
+    mark(){inRender=true},unmark(){inRender=false},
+    get busy(){return inRender},
+    get reduce(){return reduce}
+  };
+})();
+
+/* ================= 启动 ================= */
+init();
+</script>
+</body>
+</html>
