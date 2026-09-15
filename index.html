@@ -2951,6 +2951,13 @@ const FX=(()=>{
       // 蝴蝶结轻轻浮动 + 顶栏滑入（一次性）
       G.to('.logo .ic',{y:-3,duration:1.9,ease:'sine.inOut',repeat:-1,yoyo:true});
       G.from('header',{autoAlpha:0,y:-10,duration:.5});
+      // 防冻结保险：切到后台时 rAF 停转，渐入动画会停在中间帧——条目半透明，
+      // autoAlpha 趋近 0 时还带 visibility:hidden（看不见也点不到，表现为「没法打钩」）。
+      // 页面一旦隐藏，把所有动画瞬间推到终态，元素永远停在完全可见、可点击。
+      if(typeof document!=='undefined'&&document.addEventListener)
+        document.addEventListener('visibilitychange',()=>{
+          if(document.hidden)try{G.globalTimeline.getChildren(true,true,false).forEach(t=>{try{t.progress(1)}catch(e2){}})}catch(e){}
+        });
     }catch(e){}
   }
   function killScroll(){if(ST)try{ST.getAll().forEach(t=>t.kill())}catch(e){}}
@@ -2992,8 +2999,10 @@ const FX=(()=>{
     const rows=all('.todo-item,.task-row,.stage',root);
     if(reduce){bars(root);rings(root);nums(root);return}
     const tl=G.timeline({defaults:{duration:.4,ease:'power2.out'}});
-    if(cards.length)tl.from(cards,{autoAlpha:0,y:12,stagger:.035,clearProps:'transform'},0);
-    if(rows.length)tl.from(rows,{autoAlpha:0,x:-6,stagger:.02,clearProps:'transform'},.05);
+    if(cards.length)tl.from(cards,{autoAlpha:0,y:12,stagger:.035,clearProps:'opacity,visibility,transform'},0);
+    if(rows.length)tl.from(rows,{autoAlpha:0,x:-6,stagger:.02,clearProps:'opacity,visibility,transform'},.05);
+    // 动画完成后把内联的透明度/可见性清空，交给 CSS 默认（可见）——即便 clearProps 没跑也不残留
+    tl.eventCallback('onComplete',()=>{all('.todo-item,.task-row,.stage',root).forEach(el=>{try{el.style.opacity='';el.style.visibility=''}catch(e2){}})});
     bars(root);rings(root);nums(root);
   }
   // 页面级入场：视口内的元素依次浮现，视口外的交给 ScrollTrigger 滚入时再出现
@@ -3011,12 +3020,17 @@ const FX=(()=>{
     const inHeads=whole.filter(vis),belowHeads=whole.filter(el=>!vis(el));
     if(reduce){bars(v);rings(v);nums(v);return}
     const tl=G.timeline({defaults:{duration:.42,ease:'power2.out'}});
-    if(inHeads.length)tl.from(inHeads,{autoAlpha:0,y:10,stagger:.05,clearProps:'transform'},0);
-    if(inCards.length)tl.from(inCards,{autoAlpha:0,y:16,stagger:.055,clearProps:'transform'},.03);
+    if(inHeads.length)tl.from(inHeads,{autoAlpha:0,y:10,stagger:.05,clearProps:'opacity,visibility,transform'},0);
+    if(inCards.length)tl.from(inCards,{autoAlpha:0,y:16,stagger:.055,clearProps:'opacity,visibility,transform'},.03);
     const below=belowCards.concat(belowHeads);
     if(below.length){
-      if(ST)ST.batch(below,{start:'top 92%',once:true,onEnter:b=>G.from(b,{autoAlpha:0,y:16,duration:.45,stagger:.07,ease:'power2.out',clearProps:'transform'})});
-      else G.from(below,{autoAlpha:0,y:12,stagger:.05,delay:.18,clearProps:'transform'});
+      if(ST)ST.batch(below,{start:'top 96%',once:true,onEnter:b=>G.from(b,{autoAlpha:0,y:16,duration:.45,stagger:.07,ease:'power2.out',clearProps:'opacity,visibility,transform'})});
+      else G.from(below,{autoAlpha:0,y:12,stagger:.05,delay:.18,clearProps:'opacity,visibility,transform'});
+      // 兜底：滚动触发若因布局变化/窗口缩放没命中，2.5s 后把已在视口内的元素强制显现（防「永远隐形+点不到」）
+      setTimeout(()=>{
+        const vh=(typeof window!=='undefined'&&window.innerHeight)||800;
+        below.forEach(b=>{try{const r=b.getBoundingClientRect();if(r.top<vh&&r.bottom>0&&+getComputedStyle(b).opacity<1){b.style.opacity='';b.style.visibility='';b.style.transform=''}}catch(e){}});
+      },2500);
     }
     bars(v);rings(v);nums(v);
   }
