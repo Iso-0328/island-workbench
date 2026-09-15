@@ -1325,59 +1325,101 @@ function groupTodos(ds){
 }
 function renderDay(){
   computeDP();
-  matSug(todoDate);
-  const groups=groupTodos(todoDate);
-  const sug=dpSug(todoDate);
-  const hStudy=sug.filter(s=>s.kind==='study').reduce((a,b)=>a+b.hours,0);
-  const hWork=sug.filter(s=>s.kind==='work').reduce((a,b)=>a+b.hours,0);
-  // 完成计数：有子任务的按子任务条数算，没有的按条目算
-  let doneN=0,totalN=0;
-  groups.forEach(g=>{
-    const rows=g.kidsBySub.length?g.kidsBySub:[g.task].filter(Boolean);
-    rows.forEach(x=>{totalN++;if(x.done)doneN++});
-  });
-  const body=groups.map(g=>{
-    const first=g.kid;
-    const item=first.ref?itemByRef(first.ref):null;
-    if(!g.kidsBySub.length){
-      // 没有子任务：单行显示（勾选整条任务）
-      return todoItemHTML(todoDate,g.task||first);
-    }
-    const task=taskOfRef(g.ref);
-    const p=item?item.progress:0;
-    const color=(item&&item.color)||'#9d8cd2';
-    const dn=g.kidsBySub.filter(x=>x.done).length;
-    const subAll=(task&&task.subtasks)||[];
-    const pendSub=subAll.filter(s=>!s.done).length;          // 整个任务还没做完的子任务
-    const restDays=pendSub-g.kidsBySub.filter(x=>!x.done).length; // 除今天外还排在后面的条数
-    const allDone=dn===g.kidsBySub.length;
-    return`<div class="task-group">
-      <div class="tg-head">
-        <span class="tg-dot" style="background:${color}"></span>
-        <b>${esc(item?item.name:first.text.replace(/（[\d.]+h）$/,''))}</b>
-        ${item?`<span class="tag gray" style="color:${color}">${esc(item.sub)}</span>`:''}
-        <span class="muted" style="margin-left:auto;white-space:nowrap">今天 ${dn}/${g.kidsBySub.length} 条 · 总进度 ${p}%</span>
-        <button class="btn ghost sm" style="flex:none" title="把今天这几条一次性标记完成" onclick="doneAllSubs('${todoDate}','${g.ref}')" ${allDone?'disabled':''}>今天全做完</button>
-      </div>
-      <div class="tg-subs">
-        ${g.kidsBySub.map(x=>`<div class="todo-item sub ${x.done?'done':''}">
-          <button class="chk ${x.done?'on':''}" onclick="toggleTodo('${todoDate}','${x.id}')">${x.done?'✓':''}</button>
-          <div class="t">${esc(x.text)}</div>
-          <button class="btn danger sm" onclick="delTodo('${todoDate}','${x.id}')">删</button>
-        </div>`).join('')}
-        ${g.kids.filter(x=>!x.subId).map(x=>todoItemHTML(todoDate,x)).join('')}
-      </div>
-      ${restDays>0?`<div class="muted tg-more">这个任务还有 ${restDays} 条子任务排在后面几天，跟着截止日期自动往前推</div>`:''}
+  const today=todayStr();
+  // 三天视图：从 todoDate（默认今天，翻日历跟随）起连续三天——后面的可以提前做
+  const days=[0,1,2].map(i=>d2s(addDays(s2d(todoDate),i)));
+  days.forEach(ds=>matSug(ds));
+  // 顺延：起点是今天时，把「日期早于今天」的未完成条目自动收进今天组末尾（做完一条少一条）。
+  // 每周重复条目（rpt:）有固定发生日，过期就过期，不顺延。
+  const carry=[];
+  if(days[0]===today){
+    Object.keys(S.todos||{}).sort().forEach(ds=>{
+      if(ds>=today)return;
+      todoList(ds).forEach(x=>{
+        if(x.done)return;
+        if(x.ref&&x.ref.indexOf('rpt:')===0)return;
+        if(!passFilter(x.kind||'study'))return;
+        carry.push({ods:ds,x});
+      });
+    });
+  }
+  const oneDay=(ds,isFirst)=>{
+    const groups=groupTodos(ds);
+    const sug=dpSug(ds);
+    const hs=sug.filter(s=>s.kind==='study').reduce((a,b)=>a+b.hours,0);
+    const hw=sug.filter(s=>s.kind==='work').reduce((a,b)=>a+b.hours,0);
+    let dn=0,tn=0;
+    groups.forEach(g=>{
+      const rows=g.kidsBySub.length?g.kidsBySub:[g.task].filter(Boolean);
+      rows.forEach(x=>{tn++;if(x.done)dn++});
+    });
+    const body=groups.map(g=>{
+      const first=g.kid;
+      const item=first.ref?itemByRef(first.ref):null;
+      if(!g.kidsBySub.length)return todoItemHTML(ds,g.task||first);
+      const task=taskOfRef(g.ref);
+      const p=item?item.progress:0;
+      const color=(item&&item.color)||'#9d8cd2';
+      const dnc=g.kidsBySub.filter(x=>x.done).length;
+      const subAll=(task&&task.subtasks)||[];
+      const pendSub=subAll.filter(s=>!s.done).length;
+      const restDays=pendSub-g.kidsBySub.filter(x=>!x.done).length;
+      const allDone=dnc===g.kidsBySub.length;
+      return`<div class="task-group">
+        <div class="tg-head">
+          <span class="tg-dot" style="background:${color}"></span>
+          <b>${esc(item?item.name:first.text.replace(/（[\d.]+h）$/,''))}</b>
+          ${item?`<span class="tag gray" style="color:${color}">${esc(item.sub)}</span>`:''}
+          <span class="muted" style="margin-left:auto;white-space:nowrap">${ds===today?'今天':'当天'} ${dnc}/${g.kidsBySub.length} 条 · 总进度 ${p}%</span>
+          <button class="btn ghost sm" style="flex:none" title="把这天这几条一次性标记完成" onclick="doneAllSubs('${ds}','${g.ref}')" ${allDone?'disabled':''}>全做完</button>
+        </div>
+        <div class="tg-subs">
+          ${g.kidsBySub.map(x=>`<div class="todo-item sub ${x.done?'done':''}">
+            <button class="chk ${x.done?'on':''}" onclick="toggleTodo('${ds}','${x.id}')">${x.done?'✓':''}</button>
+            <div class="t">${esc(x.text)}</div>
+            <button class="btn danger sm" onclick="delTodo('${ds}','${x.id}')">删</button>
+          </div>`).join('')}
+          ${g.kids.filter(x=>!x.subId).map(x=>todoItemHTML(ds,x)).join('')}
+        </div>
+        ${restDays>0?`<div class="muted tg-more">这个任务还有 ${restDays} 条子任务排在后面几天，跟着截止日期自动往前推</div>`:''}
+      </div>`;
+    }).join('');
+    const head=`<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;margin:${isFirst?'2px':'18px'} 0 8px;padding-top:${isFirst?'0':'12px'};border-top:${isFirst?'none':'1px dashed #f0d5e2'}">
+      <b style="${ds===today?'color:var(--accent)':''}">${fmtMD(ds)} 周${wk(ds)}${ds===today?' · 今天':''}</b>
+      <span class="muted">完成 ${dn}/${tn}${(hs+hw)?` · 建议 ${(hs+hw).toFixed(1)}h（学 ${hs.toFixed(1)} / 工 ${hw.toFixed(1)}）`:''}</span>
     </div>`;
-  }).join('');
+    const empty=groups.length?'':(isFirst
+      ?`<div class="empty">这天没有安排的任务 <i class="ic" data-ic="cup"></i><br><span class="muted">任务会按截止日期自动分配到每天，也可以点右上角手动添加</span></div>`
+      :`<div class="muted" style="padding:2px 0 6px">这天没有安排</div>`);
+    return{html:head+body+empty,dn,tn,hs,hw};
+  };
+  const r=days.map((ds,i)=>oneDay(ds,i===0));
+  const totD=r.reduce((a,b)=>a+b.dn,0),totT=r.reduce((a,b)=>a+b.tn,0);
+  const totHS=r.reduce((a,b)=>a+b.hs,0),totHW=r.reduce((a,b)=>a+b.hw,0);
+  const carryHTML=carry.length?`
+    <div style="margin:14px 0 0;padding:10px 12px;border-radius:14px;background:#fff5f9;border:1px dashed #f2c4d8">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">
+        <b style="color:#c2507f">之前没做完的（已自动顺延）</b>
+        <span class="muted">共 ${carry.length} 条 · 做完一条少一条</span>
+      </div>
+      ${carry.map(c=>`<div class="todo-item sub" style="margin:6px 0 0">
+        <button class="chk" onclick="toggleTodo('${c.ods}','${c.x.id}')"></button>
+        <div class="t" style="font-size:13px">${esc(c.x.text)} <span class="tag" style="background:#fde7f1;color:#c2507f;border:1px solid #f5c6da">原定 ${fmtMD(c.ods)} 周${wk(c.ods)}</span></div>
+        <button class="btn danger sm" onclick="delTodo('${c.ods}','${c.x.id}')">删</button>
+      </div>`).join('')}
+    </div>`:'';
   const html=`<div class="card">
-    <h2 style="margin-top:0"><i class="ic" data-ic="calendar"></i> ${fmtMD(todoDate)} 周${wk(todoDate)} <span class="muted">第${teachWeek(todoDate)||'—'}教学周 · 完成 ${doneN}/${totalN}</span></h2>
+    <h2 style="margin-top:0"><i class="ic" data-ic="calendar"></i> ${fmtMD(days[0])} 周${wk(days[0])} 起 · 3 天 <span class="muted">第${teachWeek(days[0])||'—'}教学周 · 完成 ${totD}/${totT}${carry.length?` · 顺延 ${carry.length} 条`:''}</span></h2>
     <div class="legend">
-      <span><i style="background:#9d8cd2"></i>学习 ${hStudy.toFixed(1)}h</span>
-      <span><i style="background:${WORK_COLOR}"></i>工作 ${hWork.toFixed(1)}h</span>
-      <b>合计 ${(hStudy+hWork).toFixed(1)}h</b>
+      <span><i style="background:#9d8cd2"></i>学习 ${totHS.toFixed(1)}h</span>
+      <span><i style="background:${WORK_COLOR}"></i>工作 ${totHW.toFixed(1)}h</span>
+      <b>合计 ${(totHS+totHW).toFixed(1)}h</b>
+      <span class="muted" style="margin-left:8px">后两天的可以提前做；今天没做完的会自动顺延</span>
     </div>
-    ${groups.length?body:`<div class="empty">今天没有安排的任务 <i class="ic" data-ic="cup"></i><br><span class="muted">任务会按截止日期自动分配到每天，也可以点右上角手动添加</span></div>`}
+    ${r[0].html}
+    ${carryHTML}
+    ${r[1].html}
+    ${r[2].html}
   </div>`;
   $('#todo-body').innerHTML=html;
 }
