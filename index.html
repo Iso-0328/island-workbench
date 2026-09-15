@@ -1331,7 +1331,28 @@ function renderDay(){
   days.forEach(ds=>matSug(ds));
   // 顺延：起点是今天时，把「日期早于今天」的未完成条目自动收进今天组末尾（做完一条少一条）。
   // 每周重复条目（rpt:）有固定发生日，过期就过期，不顺延。
-  const carry=[];
+  // 顺延区只收「手动添加」的条目（自定义待办，无 ref / source=custom）。
+  // 自动排的活没做完，传送带本来就会从今天起按轻重缓急重新排进后面的日子——
+  // 再逐条收进来等于同一件事出现两遍，还会把页面糊成一大片
+  // （2026-09-15 用户反馈：顺延区 26 条全是旧算法摊分的残留，繁琐不现实）。
+  // 判定次序：显式 source 优先（自定义待办就是手动，哪怕带了 ref）；
+  // 没写 source 的老数据靠 ref 前缀兜底（task:/stage: 都是计划自动生成的）
+  const isAutoItem=x=>x.source==='auto'||(!x.source&&!!x.ref&&(x.ref.indexOf('task:')===0||x.ref.indexOf('stage:')===0));
+  // 残留是否还「作数」：对应的任务/子任务至今没做完才算——做完了（哪怕是在后面某天做的）
+  // 残留就不再计数，提示条会随真实进度缩到 0，而不是永远挂着历史沉积数字
+  const staleRelevant=x=>{
+    try{
+      const it=itemByRef(x.ref);
+      if(!it)return false;
+      if(x.subId){
+        const t=taskOfRef(x.ref);
+        const st=t&&(t.subtasks||[]).find(s=>s.id===x.subId);
+        return st?!st.done:true;
+      }
+      return !it.done;
+    }catch(e){return false}
+  };
+  const carry=[];let autoLeft=0;
   if(days[0]===today){
     Object.keys(S.todos||{}).sort().forEach(ds=>{
       if(ds>=today)return;
@@ -1339,6 +1360,7 @@ function renderDay(){
         if(x.done)return;
         if(x.ref&&x.ref.indexOf('rpt:')===0)return;
         if(!passFilter(x.kind||'study'))return;
+        if(isAutoItem(x)){if(staleRelevant(x))autoLeft++;return}
         carry.push({ods:ds,x});
       });
     });
@@ -1396,10 +1418,14 @@ function renderDay(){
   const r=days.map((ds,i)=>oneDay(ds,i===0));
   const totD=r.reduce((a,b)=>a+b.dn,0),totT=r.reduce((a,b)=>a+b.tn,0);
   const totHS=r.reduce((a,b)=>a+b.hs,0),totHW=r.reduce((a,b)=>a+b.hw,0);
+  const autoNote=autoLeft?`
+    <div class="muted" style="margin:10px 0 0;padding:8px 12px;border-radius:12px;background:#fdf3f7;font-size:12.5px;line-height:1.6">
+      过去几天还散着 <b>${autoLeft}</b> 条没做完的自动条目，<b>不用逐条处理</b>：没到截止的任务，计划会按截止日期（轻重缓急）把它们重新排进后面的日子；过了截止的会在「规划」页标红提醒。
+    </div>`:'';
   const carryHTML=carry.length?`
     <div style="margin:14px 0 0;padding:10px 12px;border-radius:14px;background:#fff5f9;border:1px dashed #f2c4d8">
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">
-        <b style="color:#c2507f">之前没做完的（已自动顺延）</b>
+        <b style="color:#c2507f">手动添加、之前没做完的（已自动顺延）</b>
         <span class="muted">共 ${carry.length} 条 · 做完一条少一条</span>
       </div>
       ${carry.map(c=>`<div class="todo-item sub" style="margin:6px 0 0">
@@ -1414,10 +1440,11 @@ function renderDay(){
       <span><i style="background:#9d8cd2"></i>学习 ${totHS.toFixed(1)}h</span>
       <span><i style="background:${WORK_COLOR}"></i>工作 ${totHW.toFixed(1)}h</span>
       <b>合计 ${(totHS+totHW).toFixed(1)}h</b>
-      <span class="muted" style="margin-left:8px">后两天的可以提前做；今天没做完的会自动顺延</span>
+      <span class="muted" style="margin-left:8px">后两天的可以提前做；排法按截止日期轻重缓急——自动任务没做完会重排进后面的日子，手动加的没做完会顺延到下方</span>
     </div>
     ${r[0].html}
     ${carryHTML}
+    ${autoNote}
     ${r[1].html}
     ${r[2].html}
   </div>`;
