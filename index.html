@@ -2280,19 +2280,157 @@ function delTask(id){
 }
 function addTodoModal(){
   const ds=todoMode==='day'?todoDate:todoMode==='week'?(todoWkStart||weekStartOf(todayStr())):todayStr();
+  TD_IMG_LIST=[];TD_TEXTS=[];window.__tdParsed=null;
   openModal(`<h3>添加自定义待办</h3>
   <label>日期</label><input type="date" id="td-date" value="${ds}">
-  <label>内容 *</label><input id="td-text" placeholder="例如：去图书馆还书">
+  <label>内容</label><input id="td-text" placeholder="例如：去图书馆还书">
+  <div class="muted" style="margin:12px 0 6px;font-size:12px">—— 或者交给 AI：粘贴截图 / 上传文件，让它拆成待办（先预览勾选，再导入）——</div>
+  <div class="drop-paste" id="td-drop" tabindex="0">
+    <i class="ic" data-ic="image"></i> 点这里按 <b>Ctrl + V</b> 粘贴图片，或把文件拖进来<br>
+    <span class="muted">支持 截图 / png / jpg / PDF / Word / PPT / txt，图片一次最多 ${TD_IMG_MAX} 张</span>
+    <div style="display:flex;gap:8px;justify-content:center;margin-top:10px">
+      <label class="btn ghost sm" style="cursor:pointer;margin:0"><i class="ic" data-ic="tray"></i> 选择文件
+        <input type="file" id="td-file" multiple accept=".pdf,.txt,.md,.csv,.docx,.pptx,.xlsx,image/*" style="display:none" onchange="tdFromFiles(this.files);this.value=''">
+      </label>
+      <button type="button" class="btn ghost sm" onclick="tdClearAll()">清空</button>
+    </div>
+  </div>
+  <div class="pv-wrap" id="td-pv"></div>
+  <div id="td-note" class="muted" style="margin-top:6px"></div>
+  <div style="margin-top:8px;display:flex;gap:8px;justify-content:flex-end">
+    <button type="button" class="btn ghost sm" id="td-ai-run" onclick="tdRunParse()"><i class="ic" data-ic="wand"></i> AI 解析</button>
+  </div>
+  <div id="td-result" style="margin-top:6px"></div>
   <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end">
     <button class="btn ghost" onclick="closeModal()">取消</button>
     <button class="btn" onclick="saveTodoItem()">添加</button>
   </div>`);
+  const dz=$('#td-drop');
+  dz.addEventListener('paste',tdPaste,true);
+  dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('over')});
+  dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
+  dz.addEventListener('drop',e=>{
+    e.preventDefault();dz.classList.remove('over');
+    const fs=e.dataTransfer&&e.dataTransfer.files;
+    if(fs&&fs.length)tdFromFiles(fs);
+    else tdNote('没读到文件，试试先截图再按 Ctrl+V 粘贴。');
+  });
+  setTimeout(()=>{try{dz.focus()}catch(e){}},60);
 }
 function saveTodoItem(){
   const ds=$('#td-date').value||todayStr();const text=$('#td-text').value.trim();
   if(!text){alert('请填写内容');return}
   (S.todos[ds]=S.todos[ds]||[]).push({id:uid(),text,done:false,source:'custom'});
   save();closeModal();renderTodo(false);
+}
+
+/* ================= 自定义待办：粘贴图片 / 上传文件 / AI 解析（2026-09-14）=================
+   与课程页图片识别（IMG_LIST / imgParseModal）完全独立：这里用独立的 TD_IMG_LIST，
+   两边互不清空。文档文本复用 pdfToText / readTextFile / zipDocText；有图片走
+   callAIImages（多模态），纯文档走 callAI。解析结果先预览（可勾选、可改字），
+   确认后按弹窗所选日期批量写入 source:'custom' 条目——手动语义，顺延规则正常收。 */
+const TD_IMG_MAX=3;
+let TD_IMG_LIST=[],TD_TEXTS=[];
+function tdNote(m,cls){
+  const n=$('#td-note');if(!n)return;
+  n.innerHTML=m;
+  n.style.color=cls==='bad'?'#c9566f':(cls==='ok'?'#c25d8a':'');
+}
+function tdHasMaterial(){return TD_IMG_LIST.length>0||TD_TEXTS.length>0}
+function tdRenderPv(){
+  const box=$('#td-pv');if(!box)return;
+  box.innerHTML=TD_IMG_LIST.map((im,i)=>`<div class="pv-box" style="margin:0 8px 8px 0">
+    <img src="${im.dataUrl}" alt="待解析图片 ${i+1}">
+    <button class="pv-x" title="移除这张" onclick="tdImgRemove(${i})">×</button></div>`).join('')
+  +TD_TEXTS.map((t,i)=>`<div class="pv-box" style="margin:0 8px 8px 0;padding:10px 12px;min-width:130px;text-align:left">
+    <b style="font-size:12px;word-break:break-all">${esc(t.name)}</b>
+    <div class="muted" style="font-size:11px">已提取 ${t.text.length} 字</div>
+    <button class="pv-x" title="移除" onclick="tdDocRemove(${i})">×</button></div>`).join('');
+}
+function tdImgRemove(i){TD_IMG_LIST.splice(i,1);tdRenderPv();tdNote(tdHasMaterial()?'已移除。':'已清空，可继续添加。')}
+function tdDocRemove(i){TD_TEXTS.splice(i,1);tdRenderPv();tdNote(tdHasMaterial()?'已移除。':'已清空，可继续添加。')}
+function tdClearAll(){
+  TD_IMG_LIST=[];TD_TEXTS=[];window.__tdParsed=null;
+  tdRenderPv();const r=$('#td-result');if(r)r.innerHTML='';
+  tdNote('已清空，可继续添加。');
+}
+function tdPaste(e){
+  const dt=e.clipboardData;if(!dt)return;
+  const items=dt.items?[...dt.items]:[];
+  let files=items.filter(it=>it.kind==='file'&&/^image\//.test(it.type||'')).map(it=>it.getAsFile()).filter(Boolean);
+  if(!files.length&&dt.files&&dt.files.length)files=[...dt.files];
+  if(!files.length){tdNote('剪贴板里没有图片或文件。先截图，再回到这个框里按 Ctrl+V。','bad');return}
+  e.preventDefault();e.stopPropagation();
+  tdFromFiles(files);
+}
+async function tdFromFiles(fl){
+  const files=[...(fl||[])];
+  if(!files.length){tdNote('没读到文件。','bad');return}
+  let imgN=0,docN=0;
+  for(const f of files){
+    try{
+      if(/^image\//.test(f.type||'')){
+        if(TD_IMG_LIST.length>=TD_IMG_MAX){tdNote('图片最多 '+TD_IMG_MAX+' 张，多出的没加。','bad');continue}
+        const dataUrl=await new Promise((res,rej)=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.onerror=()=>rej(new Error('读取失败'));fr.readAsDataURL(f)});
+        TD_IMG_LIST.push({dataUrl,name:f.name||('图片'+(TD_IMG_LIST.length+1))});imgN++;
+      }else{
+        const ext=((f.name||'').toLowerCase().split('.').pop()||'');
+        let text='';
+        if(ext==='pdf')text=await pdfToText(f);
+        else if(ext==='docx'||ext==='pptx'||ext==='xlsx')text=await zipDocText(f);
+        else text=await readTextFile(f);
+        if(!String(text||'').trim()){tdNote('「'+esc(f.name)+'」没提取到文字，已跳过。','bad');continue}
+        TD_TEXTS.push({name:f.name,text:String(text).slice(0,6000)});docN++;
+      }
+    }catch(e){tdNote('「'+esc((f&&f.name)||'文件')+'」读取失败：'+esc((e&&e.message)||e),'bad')}
+  }
+  tdRenderPv();
+  if(imgN||docN)tdNote('✅ 已添加 '+(imgN?imgN+' 张图片':'')+(imgN&&docN?'、':'')+(docN?docN+' 个文档':'')+'。点「AI 解析」。','ok');
+}
+function tdPrompt(){
+  const mats=TD_TEXTS.map(t=>'【文件：'+t.name+'】\n'+t.text).join('\n\n');
+  return `你是待办整理助手。下面提供了学生的材料（截图内容或文档文本）。请从中提取「需要去做的事情」，整理成待办条目。输出严格的 JSON 数组，不要输出任何其他文字，每个元素形如 {"text":"具体要做的事"}。要求：
+- 每条都是具体可执行的动作，带动词和范围/数量（如「交 3000 字实习报告到系统」「复习第 1-3 章并整理公式卡」）；禁止笼统词（如「学习」「准备」）。
+- 截止时间、页数、字数等关键信息写进 text；材料里没提到的不要编造。
+- 最多 10 条；材料里没有可提取的待办就输出 []。
+
+材料：
+${mats||'（材料在图片里）'}`;
+}
+function tdShowParsed(arr){
+  const items=(Array.isArray(arr)?arr:[]).map(x=>typeof x==='string'?{text:x}:{text:(x&&x.text)||''}).map(x=>({text:String(x.text).trim()})).filter(x=>x.text).slice(0,15);
+  if(!items.length){window.__tdParsed=null;const r=$('#td-result');if(r)r.innerHTML='';tdNote('AI 没有解析出可用的待办条目。可以换更清晰的截图 / 文件再试一次。','bad');return}
+  window.__tdParsed=items;
+  $('#td-result').innerHTML=`<div class="tip" style="margin-top:4px">AI 提取出 <b>${items.length}</b> 条待办。取消勾选不要的、文字可以直接改，再点「导入所选」。导入会加到上面选的日期（<b>${esc($('#td-date').value||todayStr())}</b>）。</div>
+  ${items.map(t=>`<div class="td-parsed-row" style="display:flex;gap:6px;align-items:center;margin:4px 0">
+    <input type="checkbox" class="td-ck" checked style="width:auto">
+    <input type="text" class="td-item" value="${esc(t.text)}" style="flex:1">
+  </div>`).join('')}
+  <div style="text-align:right;margin-top:8px"><button type="button" class="btn sm" onclick="tdApplyParsed()">导入所选</button></div>`;
+}
+function tdApplyParsed(){
+  const rows=[...document.querySelectorAll('#td-result .td-parsed-row')];
+  const picks=rows.filter(r=>{const c=r.querySelector('.td-ck');return c&&c.checked}).map(r=>r.querySelector('.td-item').value.trim()).filter(Boolean);
+  if(!picks.length){alert('没有勾选任何条目，或内容都被清空了');return}
+  const ds=$('#td-date').value||todayStr();
+  const list=S.todos[ds]=S.todos[ds]||[];
+  picks.forEach(t=>list.push({id:uid(),text:t,done:false,source:'custom'}));
+  save();closeModal();renderTodo(false);
+}
+async function tdRunParse(){
+  const a=S.settings.ai;
+  if(!a.key){alert('请先到「设置」页填写 AI 接口地址、Key 和模型');return}
+  if(!tdHasMaterial()){tdNote('请先粘贴图片或上传文件，再点「AI 解析」。','bad');return}
+  const btn=$('#td-ai-run');btn.disabled=true;btn.textContent='解析中…';
+  try{
+    let arr;
+    if(TD_IMG_LIST.length)arr=pickJSON(await callAIImages(tdPrompt(),TD_IMG_LIST));
+    else arr=await callAI(tdPrompt());
+    tdShowParsed(arr);
+  }catch(e){
+    tdNote('解析失败：'+esc((e&&e.message)||e)+'<br>图片识别需要支持视觉的模型（纯文档解析用文本模型即可）。','bad');
+  }
+  btn.disabled=false;btn.innerHTML='<i class="ic" data-ic="wand"></i> AI 解析';
 }
 
 /* ================= 文档解析（PDF / 文本） ================= */
