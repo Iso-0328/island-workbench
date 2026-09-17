@@ -684,6 +684,9 @@ async function init(){
   S.projects.forEach(p=>{ // 补全缺失阶段
     p.stages=p.stages||{};
     WORK_STAGES.forEach(s=>{if(!p.stages[s.key])p.stages[s.key]={est:4,due:'',status:0,progress:0}});
+    // 交稿日跟随发布阶段：此前两套日期互不同步，只改阶段日期时 deliverDate 会留着旧值（2026-09-17 修复）
+    const pub=p.stages.publish&&p.stages.publish.due;
+    if(pub&&p.deliverDate!==pub)p.deliverDate=pub;
   });
   Object.keys(S.todos||{}).forEach(ds=>S.todos[ds].forEach(x=>{if(!x.ref&&x.taskId)x.ref='task:'+x.taskId;if(!x.kind)x.kind='study'}));
   // 子任务补 id：老数据（AI 导入/早期版本）可能只有 name/done，没 id 就无法定位到具体一条
@@ -1595,7 +1598,7 @@ function projectCard(p){
 function renderWork(){
   const ps=(S.projects||[]).slice().sort((a,b)=>a.deliverDate<b.deliverDate?-1:1);
   const act=ps.filter(p=>projectProgress(p)<100).length;
-  const upcoming=ps.filter(p=>p.deliverDate>=todayStr()).slice(0,1)[0];
+  const upcoming=ps.filter(p=>projectProgress(p)<100&&p.deliverDate>=todayStr()).slice(0,1)[0]; // 已交付完的不占「最近交稿」
   $('#view').innerHTML=`
   <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px">
     <h2 style="margin:0"><i class="ic" data-ic="camera"></i> 小红书工作</h2>
@@ -1660,8 +1663,19 @@ function saveProject(id){
     stages[s.key]={est:+$('#w-est-'+s.key).value||4,due:$('#w-due-'+s.key).value||'',
       status:old.status||0,progress:old.progress||0};
   });
+  /* 交稿日与发布阶段保持一致（2026-09-17）：两边是两套字段，此前只改阶段日期时
+     deliverDate 不动，顶部「最近交稿」卡就显示旧日期。规则＝改哪边哪边赢：
+     改了发布阶段 → 交稿日跟随；只改了交稿截止日 → 发布阶段跟随；两边都改 → 发布阶段优先。 */
+  const origP=id?S.projects.find(x=>x.id===id):null;
+  const defD=d2s(addDays(s2d(todayStr()),14));   // 新增弹窗的默认交稿日（projectModal 同源）
+  const origPub=origP?((origP.stages&&origP.stages.publish&&origP.stages.publish.due)||''):defD;
+  const origDel=origP?(origP.deliverDate||''):defD;
+  const deliverIn=$('#w-deliver').value||todayStr();
+  let deliverDate=deliverIn;
+  if(stages.publish.due&&stages.publish.due!==origPub)deliverDate=stages.publish.due;
+  else if(deliverIn!==origDel)stages.publish.due=deliverDate;
   const data={name,brand:$('#w-brand').value.trim(),type:$('#w-type').value,fee:+$('#w-fee').value||0,
-    startDate:$('#w-start').value||todayStr(),deliverDate:$('#w-deliver').value||todayStr(),
+    startDate:$('#w-start').value||todayStr(),deliverDate,
     notes:$('#w-notes').value.trim(),stages};
   if(id){Object.assign(S.projects.find(x=>x.id===id),data)}
   else S.projects.push(Object.assign({id:uid()},data));
