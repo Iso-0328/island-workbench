@@ -734,7 +734,11 @@ function semesterProgress(){
 function orderedTasks(){
   const map={};S.tasks.forEach(t=>map[t.id]=t);
   const eff=t=>{let d=t.dueDate;(t.dependencies||[]).forEach(id=>{const p=map[id];if(p&&p.dueDate>d)d=p.dueDate});return d};
-  return[...S.tasks].sort((a,b)=>eff(a)<eff(b)?-1:eff(a)>eff(b)?1:0);
+  /* 已完成的沉到列表底部（09-21 用户反馈：做完的别霸占前几名），组内仍按有效截止日升序 */
+  return[...S.tasks].sort((a,b)=>{
+    if(!!a.done!==!!b.done)return a.done?1:-1;
+    return eff(a)<eff(b)?-1:eff(a)>eff(b)?1:0;
+  });
 }
 /* 统一规划条目：学习任务 + 小红书工作的四个阶段 */
 /* ================= 每周重复任务 =================
@@ -1104,7 +1108,7 @@ function renderPlan(){
   const byMonth={};ts.forEach(t=>{(byMonth[monthName(t.dueDate)]=byMonth[monthName(t.dueDate)]||[]).push(t)});
   const view=`
   <h2><i class="ic" data-ic="moon"></i> 任务完成顺序建议</h2>
-  <div class="tip">排序规则：截止日期越早越靠前；有前置依赖的任务自动排到依赖之后。<b>「最晚开始」</b>= 按每天 ${S.settings.workPerDay}h 的投入，倒推出来的最迟启动日期，晚于它就要赶工了。</div>
+  <div class="tip">排序规则：截止日期越早越靠前；有前置依赖的任务自动排到依赖之后；<b>已完成的排在最后</b>。<b>「最晚开始」</b>= 按每天 ${S.settings.workPerDay}h 的投入，倒推出来的最迟启动日期，晚于它就要赶工了。</div>
   ${ts.length?`<div class="card" style="padding:6px 18px"><table>
     <tr><th>#</th><th>任务</th><th>课程</th><th>类型/占比</th><th>截止</th><th>教学周</th><th>工时</th><th>最晚开始</th><th>前置</th><th>进度</th></tr>
     ${ts.map((t,i)=>{const d=daysBetween(td,t.dueDate);const late=!t.done&&t.dueDate<td;
