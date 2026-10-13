@@ -942,17 +942,15 @@ function renderDash(){
   const doneN=items.filter(t=>t.done).length;
   const upcoming=items.filter(t=>!t.done&&t.dueDate>=td).sort((a,b)=>a.dueDate<b.dueDate?-1:1).slice(0,6);
   const overdue=items.filter(t=>!t.done&&t.dueDate<td);
-  const weekTodos=weekTodoStats(wkStart);
   const projs=S.projects||[];
   const actP=projs.filter(p=>projectProgress(p)<100).length;
   const nextDeliver=projs.filter(p=>p.deliverDate>=td).sort((a,b)=>a.deliverDate<b.deliverDate?-1:1)[0];
   const view=`
   ${overdue.length?`<div class="tip" style="background:#fdeef2;border-color:#f7d4de;color:#c9566f"><i class="ic" data-ic="warn"></i> 有 <b>${overdue.length}</b> 个条目已过截止日期仍未完成：${overdue.slice(0,5).map(t=>esc(t.name)).join('、')}${overdue.length>5?' 等':''}。请到「规划」或「小红书工作」页处理。</div>`:''}
-  <div class="grid g4">
+  <div class="grid g3">
     <div class="card stat"><div class="tile"><i class="ic" data-ic="calendar"></i></div><div><div class="big">${semesterProgress()}%</div><div class="sub">学期时间进度</div></div></div>
     <div class="card stat"><div class="tile lilac"><i class="ic" data-ic="star4"></i></div><div><div class="big">${doneN}/${items.length}</div><div class="sub">全部条目完成数</div></div></div>
     <div class="card stat"><div class="tile soft"><i class="ic" data-ic="moon"></i></div><div><div class="big">${wkHours?wkHours.toFixed(1):0}<span style="font-size:13px;color:var(--ink2)">h</span></div><div class="sub">本周建议投入 学习 ${wkStudy.toFixed(1)}h / 工作 ${wkWork.toFixed(1)}h</div></div></div>
-    <div class="card stat"><div class="tile soft"><i class="ic" data-ic="clock"></i></div><div><div class="big">${weekTodos.done}/${weekTodos.total}</div><div class="sub">本周待办完成情况</div></div></div>
   </div>
   <div class="grid g3" style="margin-top:16px">
     <div class="card stat" style="border-left:4px solid ${WORK_COLOR}"><div><div class="big">${actP}</div><div class="sub">进行中工作 / 共 ${projs.length} 个</div></div></div>
@@ -1011,11 +1009,6 @@ function renderDash(){
     </div>
   </div>`;
   $('#view').innerHTML=view;
-}
-function weekTodoStats(wkStart){
-  let total=0,done=0;
-  for(let i=0;i<7;i++){const ds=d2s(addDays(s2d(wkStart),i));(S.todos[ds]||[]).forEach(x=>{total++;if(x.done)done++})}
-  return{total,done};
 }
 function toggleTask(id){const t=S.tasks.find(x=>x.id===id);if(t){t.done=!t.done;save();render()}}
 
