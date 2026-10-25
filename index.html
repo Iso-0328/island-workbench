@@ -1101,13 +1101,14 @@ function renderPlan(){
   const byMonth={};ts.forEach(t=>{(byMonth[monthName(t.dueDate)]=byMonth[monthName(t.dueDate)]||[]).push(t)});
   const view=`
   <h2><i class="ic" data-ic="moon"></i> 任务完成顺序建议</h2>
-  <div class="tip">排序规则：截止日期越早越靠前；有前置依赖的任务自动排到依赖之后；<b>已完成的排在最后</b>。<b>「最晚开始」</b>= 按每天 ${S.settings.workPerDay}h 的投入，倒推出来的最迟启动日期，晚于它就要赶工了。</div>
+  <div class="tip">排序规则：截止日期越早越靠前；有前置依赖的任务自动排到依赖之后；<b>已完成的排在最后</b>。点<b>行首的方框</b>可直接标记完成/未完成，点行内其他位置进入编辑。<b>「最晚开始」</b>= 按每天 ${S.settings.workPerDay}h 的投入，倒推出来的最迟启动日期，晚于它就要赶工了。</div>
   ${ts.length?`<div class="card" style="padding:6px 18px"><table>
-    <tr><th>#</th><th>任务</th><th>课程</th><th>类型/占比</th><th>截止</th><th>教学周</th><th>工时</th><th>最晚开始</th><th>前置</th><th>进度</th></tr>
+    <tr><th><span class="muted">✓</span></th><th>#</th><th>任务</th><th>课程</th><th>类型/占比</th><th>截止</th><th>教学周</th><th>工时</th><th>最晚开始</th><th>前置</th><th>进度</th></tr>
     ${ts.map((t,i)=>{const d=daysBetween(td,t.dueDate);const late=!t.done&&t.dueDate<td;
       return`<tr style="cursor:pointer" onclick="taskModal('${t.id}')">
+      <td onclick="event.stopPropagation()"><input type="checkbox" style="width:auto" ${t.done?'checked':''} onchange="toggleTask('${t.id}')" title="标记完成/未完成"></td>
       <td><span class="prio-num ${late?'late':(!t.done&&d<=7)?'near':''}">${i+1}</span></td>
-      <td><b ${late?'style="color:var(--danger)"':''}>${esc(t.name)}</b>${isRepeatTask(t)?` <span class="tag pink">每周${WEEKDAY_NAMES[t.repeat.weekday].slice(1)}</span>`:''}${t.done?' <span class="tag green">已完成</span>':''}</td>
+      <td><b ${late?'style="color:var(--danger)"':t.done?'style="text-decoration:line-through;color:var(--ink2)"':''}>${esc(t.name)}</b>${isRepeatTask(t)?` <span class="tag pink">每周${WEEKDAY_NAMES[t.repeat.weekday].slice(1)}</span>`:''}${t.done?' <span class="tag green">已完成</span>':''}</td>
       <td><span class="tag gray" style="color:${courseColor(t.courseId)}">${esc(courseName(t.courseId))}</span></td>
       <td><span class="tag ${TYPE_COLOR[t.type]||'gray'}">${t.type||'-'}</span>${t.weight?` ${t.weight}%`:''}</td>
       <td>${isRepeatTask(t)?`每周${WEEKDAY_NAMES[t.repeat.weekday].slice(1)} · 到 ${fmtMD(t.dueDate)}`:`${fmtMD(t.dueDate)} 周${wk(t.dueDate)}`}</td>
