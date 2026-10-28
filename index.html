@@ -685,7 +685,12 @@ async function init(){
   if(!Array.isArray(S.income))S.income=[];
   S.projects.forEach(p=>{ // 补全缺失阶段
     p.stages=p.stages||{};
-    WORK_STAGES.forEach(s=>{if(!p.stages[s.key])p.stages[s.key]={est:4,due:'',status:0,progress:0}});
+    WORK_STAGES.forEach(s=>{
+      if(!p.stages[s.key])p.stages[s.key]={est:4,due:'',status:0,progress:0};
+      // 旧数据里「进行中」(status 1) 已废弃，统一回落为未开始（2026-10-28）
+      const sg=p.stages[s.key];
+      if(sg.status===1){sg.status=0;if(sg.progress===50)sg.progress=0}
+    });
     // 交稿日跟随发布阶段：此前两套日期互不同步，只改阶段日期时 deliverDate 会留着旧值（2026-09-17 修复）
     const pub=p.stages.publish&&p.stages.publish.due;
     if(pub&&p.deliverDate!==pub)p.deliverDate=pub;
@@ -797,7 +802,7 @@ function allPlanItems(){
       items.push({ref:'stage:'+p.id+':'+s.key,kind:'work',id:p.id,stage:s.key,pid:p.id,
         name:p.name+' · '+s.label,sub:(p.brand?p.brand+' · ':'')+'小红书工作',color:WORK_COLOR,
         dueDate:st.due||p.deliverDate,estHours:st.est||4,done:st.status===2,
-        progress:st.status===2?100:(st.status===1?(st.progress||50):0),
+        progress:st.status===2?100:0,
         startDate:prev&&prev.due?prev.due:'',projectName:p.name});
     });
   });
@@ -1141,7 +1146,7 @@ function renderPlan(){
     <tr><th>项目</th><th>类型</th><th>交稿</th><th><i class="ic" data-ic="pen"></i> 写脚本</th><th><i class="ic" data-ic="camera"></i> 拍摄</th><th><i class="ic" data-ic="scissors"></i> 剪辑</th><th><i class="ic" data-ic="send"></i> 发布</th><th>报价</th><th>进度</th></tr>
     ${(S.projects||[]).slice().sort((a,b)=>a.deliverDate<b.deliverDate?-1:1).map(p=>{
       const cell=(key)=>{const st=(p.stages&&p.stages[key])||{};const late=st.status!==2&&st.due&&st.due<todayStr();
-        return `<td style="${late?'color:var(--danger);font-weight:600':''}">${st.due?fmtMD(st.due):'—'}${st.status===2?' ✓':st.status===1?' ●':''} <span class="muted">${st.est||4}h</span></td>`};
+        return `<td style="${late?'color:var(--danger);font-weight:600':''}">${st.due?fmtMD(st.due):'—'}${st.status===2?' ✓':''} <span class="muted">${st.est||4}h</span></td>`};
       return`<tr style="cursor:pointer" onclick="go('work')">
         <td><b>${esc(p.name)}</b></td>
         <td><span class="tag pink">${esc(p.type||'其他')}</span></td>
@@ -1151,7 +1156,7 @@ function renderPlan(){
         <td style="min-width:100px"><div style="display:flex;align-items:center;gap:6px"><div class="bar-mini"><i style="width:${projectProgress(p)}%;background:${WORK_COLOR}"></i></div><span class="muted">${projectProgress(p)}%</span></div></td>
       </tr>`}).join('')}
   </table>
-  <div class="muted" style="padding:8px 0">✓ 已完成 · ● 进行中 · 红色=计划日已过但仍未完成</div></div>`
+  <div class="muted" style="padding:8px 0">✓ 已完成 · 红色=计划日已过但仍未完成</div></div>`
   :`<div class="card empty">还没有工作项目，去「小红书工作」页新增或导入 →</div>`}`;
   $('#view').innerHTML=view;
 }
@@ -1539,8 +1544,7 @@ function incomeOfProject(pid){return (S.income||[]).filter(x=>x.projectId===pid)
 function projectProgress(p){
   const st=WORK_STAGES.map(s=>(p.stages&&p.stages[s.key])||{});
   const done=st.filter(x=>x.status===2).length;
-  const active=st.filter(x=>x.status===1).length;
-  return Math.round(100*(done+active*0.5)/4);
+  return Math.round(100*done/4);   // 只有未完成/已完成两态（2026-10-28 去掉「进行中」折半）
 }
 function stagePlan(startStr,deliverStr){
   const weights=[0.15,0.45,0.78,1];
@@ -1549,29 +1553,14 @@ function stagePlan(startStr,deliverStr){
   WORK_STAGES.forEach((s,i)=>{out[s.key]={est:[2,3,3,2][i],due:d2s(addDays(s2d(startStr),Math.round(span*weights[i]))),status:0,progress:0}});
   return out;
 }
-/* 阶段圆圈交互（2026-10-28 重构）：单击=直接打勾/取消（此前是三态循环，
-   用户反馈「打勾要点两下」）；长按 0.55s=标记进行中。 */
-let __lpT=null;window.__lpFired=false;
-function stagePress(pid,key){
-  window.__lpFired=false;clearTimeout(__lpT);
-  __lpT=setTimeout(()=>{__lpT=null;window.__lpFired=true;stageDoing(pid,key)},550);
-}
-function stagePressEnd(){clearTimeout(__lpT);__lpT=null}
-function stageClick(pid,key){
-  if(window.__lpFired){window.__lpFired=false;return}
-  toggleStage(pid,key);
-}
+/* 阶段圆圈交互（2026-10-28 二次简化）：只有「未完成 / 已完成」两态。
+   单击直接打勾、再点取消；「进行中」状态彻底删除（用户明确不需要，
+   历史上点一下只到进行中、要两下才打勾）。 */
 function toggleStage(pid,key){
   const p=(S.projects||[]).find(x=>x.id===pid);if(!p)return;
   const st=p.stages[key]||(p.stages[key]={est:4,due:'',status:0,progress:0});
   st.status=st.status===2?0:2;
   st.progress=st.status===2?100:0;
-  save();render();
-}
-function stageDoing(pid,key){
-  const p=(S.projects||[]).find(x=>x.id===pid);if(!p)return;
-  const st=p.stages[key]||(p.stages[key]={est:4,due:'',status:0,progress:0});
-  if(st.status!==1){st.status=1;if(!st.progress||st.progress>=100)st.progress=50}
   save();render();
 }
 function projectCard(p){
@@ -1581,10 +1570,10 @@ function projectCard(p){
   const pp=projectProgress(p);
   const steps=WORK_STAGES.map((s,i)=>{
     const st=(p.stages&&p.stages[s.key])||{};
-    const cls=st.status===2?'done':(st.status===1?'active':'');
+    const cls=st.status===2?'done':'';
     const late=st.status!==2&&st.due&&st.due<today;
     return`<div class="stage ${cls}">
-      <div class="stage-dot" onclick="stageClick('${p.id}','${s.key}')" onpointerdown="stagePress('${p.id}','${s.key}')" onpointerup="stagePressEnd()" onpointerleave="stagePressEnd()" onpointercancel="stagePressEnd()" title="点击=完成/取消完成 · 长按=标记进行中">${st.status===2?'✓':s.icon}</div>
+      <div class="stage-dot" onclick="toggleStage('${p.id}','${s.key}')" title="点击=完成 / 再点取消完成">${st.status===2?'✓':s.icon}</div>
       <div class="stage-label">${s.label}</div>
       <div class="stage-meta ${late?'late':''}">${st.due?fmtMD(st.due):'—'} · ${st.est||4}h</div>
     </div>${i<3?'<div class="stage-line"></div>':''}`;
@@ -1628,7 +1617,7 @@ function renderWork(){
     <div class="card stat"><div><div class="big">${upcoming?fmtMD(upcoming.deliverDate):'—'}</div><div class="sub">最近交稿${upcoming?'：'+esc(upcoming.name):'（暂无待交付）'}</div></div></div>
     <div class="card stat"><div><div class="big" style="color:#c25d8a">¥${totalIncome().toLocaleString()}</div><div class="sub">累计收入 · 待收 ¥${receivable().toLocaleString()}</div></div></div>
   </div>
-  <div class="tip">四步流程：<b>写脚本 → 拍摄 → 剪辑 → 发布</b>。点阶段圆圈<b>直接打勾完成</b>（再点取消），<b>长按</b>标记「进行中」；每个阶段会自动折算成工时，和学习任务一起排进「待办」页。</div>
+  <div class="tip">四步流程：<b>写脚本 → 拍摄 → 剪辑 → 发布</b>。点阶段圆圈<b>直接打勾完成</b>，再点一下取消；每个阶段会自动折算成工时，和学习任务一起排进「待办」页。</div>
   <div class="grid g2">
   ${ps.map(projectCard).join('')||'<div class="card empty" style="grid-column:1/-1">还没有工作项目，点右上角新增或导入 →</div>'}
   </div>
@@ -2022,9 +2011,9 @@ function ganttHTML(){
     const marks=WORK_STAGES.map(s=>{
       const std=(p.stages&&p.stages[s.key])||{};
       if(!std.due)return'';
-      const mx=x(std.due);const fill=std.status===2?'#d15c8f':(std.status===1?'#fff':'#ffffffcc');
+      const mx=x(std.due);const fill=std.status===2?'#d15c8f':'#ffffffcc';
       return`<circle cx="${mx}" cy="${y+8}" r="5.5" fill="${fill}" stroke="${WORK_COLOR}" stroke-width="2">
-        <title>${s.label} · ${fmtMD(std.due)} · ${std.status===2?'已完成':std.status===1?'进行中':'未开始'}</title></circle>`;
+        <title>${s.label} · ${fmtMD(std.due)} · ${std.status===2?'已完成':'未开始'}</title></circle>`;
     }).join('');
     return`<g>
       <text x="${LBL-10}" y="${y+12}" font-size="11" text-anchor="end" fill="#96707f">${esc(clip(p.name,10))}<title>小红书 · ${esc(p.name)} · 交稿 ${fmtMD(p.deliverDate)}</title></text>
