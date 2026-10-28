@@ -1085,7 +1085,7 @@ function planRowHTML(it){
 }
 function toggleRef(ref){
   if(ref.indexOf('task:')===0){const t=S.tasks.find(x=>x.id===ref.slice(5));if(t){t.done=!t.done;save();render()}}
-  else if(ref.indexOf('stage:')===0){const[,pid,st]=ref.split(':');cycleStage(pid,st)}
+  else if(ref.indexOf('stage:')===0){const[,pid,st]=ref.split(':');toggleStage(pid,st)}
   else if(ref.indexOf('rpt:')===0){
     // 重复任务的单次发生/准备条目：勾选 = 固化并勾掉当天的待办（不影响其他周）
     const ds=ref.split(':')[2];const l=S.todos[ds]||(S.todos[ds]=[]);
@@ -1549,14 +1549,30 @@ function stagePlan(startStr,deliverStr){
   WORK_STAGES.forEach((s,i)=>{out[s.key]={est:[2,3,3,2][i],due:d2s(addDays(s2d(startStr),Math.round(span*weights[i]))),status:0,progress:0}});
   return out;
 }
-function cycleStage(pid,key){
+/* 阶段圆圈交互（2026-10-28 重构）：单击=直接打勾/取消（此前是三态循环，
+   用户反馈「打勾要点两下」）；长按 0.55s=标记进行中。 */
+let __lpT=null;window.__lpFired=false;
+function stagePress(pid,key){
+  window.__lpFired=false;clearTimeout(__lpT);
+  __lpT=setTimeout(()=>{__lpT=null;window.__lpFired=true;stageDoing(pid,key)},550);
+}
+function stagePressEnd(){clearTimeout(__lpT);__lpT=null}
+function stageClick(pid,key){
+  if(window.__lpFired){window.__lpFired=false;return}
+  toggleStage(pid,key);
+}
+function toggleStage(pid,key){
   const p=(S.projects||[]).find(x=>x.id===pid);if(!p)return;
   const st=p.stages[key]||(p.stages[key]={est:4,due:'',status:0,progress:0});
-  st.status=st.status===0?1:(st.status===1?2:0);
-  if(st.status===2)st.progress=100;else if(st.status===1)st.progress=st.progress||50;else st.progress=0;
-  save();
-  if(window.__justStage==='1'){} // 保留扩展位
-  render();
+  st.status=st.status===2?0:2;
+  st.progress=st.status===2?100:0;
+  save();render();
+}
+function stageDoing(pid,key){
+  const p=(S.projects||[]).find(x=>x.id===pid);if(!p)return;
+  const st=p.stages[key]||(p.stages[key]={est:4,due:'',status:0,progress:0});
+  if(st.status!==1){st.status=1;if(!st.progress||st.progress>=100)st.progress=50}
+  save();render();
 }
 function projectCard(p){
   const today=todayStr();
@@ -1568,7 +1584,7 @@ function projectCard(p){
     const cls=st.status===2?'done':(st.status===1?'active':'');
     const late=st.status!==2&&st.due&&st.due<today;
     return`<div class="stage ${cls}">
-      <div class="stage-dot" onclick="cycleStage('${p.id}','${s.key}')" title="点击切换：未开始 → 进行中 → 已完成">${st.status===2?'✓':s.icon}</div>
+      <div class="stage-dot" onclick="stageClick('${p.id}','${s.key}')" onpointerdown="stagePress('${p.id}','${s.key}')" onpointerup="stagePressEnd()" onpointerleave="stagePressEnd()" onpointercancel="stagePressEnd()" title="点击=完成/取消完成 · 长按=标记进行中">${st.status===2?'✓':s.icon}</div>
       <div class="stage-label">${s.label}</div>
       <div class="stage-meta ${late?'late':''}">${st.due?fmtMD(st.due):'—'} · ${st.est||4}h</div>
     </div>${i<3?'<div class="stage-line"></div>':''}`;
@@ -1612,7 +1628,7 @@ function renderWork(){
     <div class="card stat"><div><div class="big">${upcoming?fmtMD(upcoming.deliverDate):'—'}</div><div class="sub">最近交稿${upcoming?'：'+esc(upcoming.name):'（暂无待交付）'}</div></div></div>
     <div class="card stat"><div><div class="big" style="color:#c25d8a">¥${totalIncome().toLocaleString()}</div><div class="sub">累计收入 · 待收 ¥${receivable().toLocaleString()}</div></div></div>
   </div>
-  <div class="tip">四步流程：<b>写脚本 → 拍摄 → 剪辑 → 发布</b>。点阶段圆圈切换状态（未开始 → 进行中 → 已完成），每个阶段会自动折算成工时，和学习任务一起排进「待办」页。</div>
+  <div class="tip">四步流程：<b>写脚本 → 拍摄 → 剪辑 → 发布</b>。点阶段圆圈<b>直接打勾完成</b>（再点取消），<b>长按</b>标记「进行中」；每个阶段会自动折算成工时，和学习任务一起排进「待办」页。</div>
   <div class="grid g2">
   ${ps.map(projectCard).join('')||'<div class="card empty" style="grid-column:1/-1">还没有工作项目，点右上角新增或导入 →</div>'}
   </div>
