@@ -687,10 +687,16 @@ async function init(){
     p.stages=p.stages||{};
     WORK_STAGES.forEach(s=>{
       if(!p.stages[s.key])p.stages[s.key]={est:4,due:'',status:0,progress:0};
-      // 旧数据里「进行中」(status 1) 已废弃，统一回落为未开始（2026-10-28）
-      const sg=p.stages[s.key];
-      if(sg.status===1){sg.status=0;if(sg.progress===50)sg.progress=0}
-    });
+    // 旧数据里「进行中」(status 1) 已废弃，统一回落为未开始（2026-10-28）
+    const sg=p.stages[s.key];
+    if(sg.status===1){sg.status=0;if(sg.progress===50)sg.progress=0}
+  });
+    // 后面的阶段已完成 ⟹ 前序环节也一定完成了（2026-11-03）：把存量「发布✓但剪辑没✓」这类不一致修正
+    for(let i=1;i<WORK_STAGES.length;i++){
+      if(p.stages[WORK_STAGES[i].key].status===2){
+        for(let j=0;j<i;j++){const pj=p.stages[WORK_STAGES[j].key];if(pj.status!==2){pj.status=2;pj.progress=100}}
+      }
+    }
     // 交稿日跟随发布阶段：此前两套日期互不同步，只改阶段日期时 deliverDate 会留着旧值（2026-09-17 修复）
     const pub=p.stages.publish&&p.stages.publish.due;
     if(pub&&p.deliverDate!==pub)p.deliverDate=pub;
@@ -1555,12 +1561,21 @@ function stagePlan(startStr,deliverStr){
 }
 /* 阶段圆圈交互（2026-10-28 二次简化）：只有「未完成 / 已完成」两态。
    单击直接打勾、再点取消；「进行中」状态彻底删除（用户明确不需要，
-   历史上点一下只到进行中、要两下才打勾）。 */
+   历史上点一下只到进行中、要两下才打勾）。
+   2026-11-03：勾选某阶段 = 承认前序环节都完成了（工作流是串行的：
+   能发布就说明脚本/拍摄/剪辑都做完了），前面的阶段一并打勾。 */
 function toggleStage(pid,key){
   const p=(S.projects||[]).find(x=>x.id===pid);if(!p)return;
+  const idx=WORK_STAGES.findIndex(s=>s.key===key);
   const st=p.stages[key]||(p.stages[key]={est:4,due:'',status:0,progress:0});
   st.status=st.status===2?0:2;
   st.progress=st.status===2?100:0;
+  if(st.status===2){ // 前序环节连带完成
+    for(let i=0;i<idx;i++){
+      const prev=p.stages[WORK_STAGES[i].key]||(p.stages[WORK_STAGES[i].key]={est:4,due:'',status:0,progress:0});
+      prev.status=2;prev.progress=100;
+    }
+  }
   save();render();
 }
 function projectCard(p){
@@ -1617,7 +1632,7 @@ function renderWork(){
     <div class="card stat"><div><div class="big">${upcoming?fmtMD(upcoming.deliverDate):'—'}</div><div class="sub">最近交稿${upcoming?'：'+esc(upcoming.name):'（暂无待交付）'}</div></div></div>
     <div class="card stat"><div><div class="big" style="color:#c25d8a">¥${totalIncome().toLocaleString()}</div><div class="sub">累计收入 · 待收 ¥${receivable().toLocaleString()}</div></div></div>
   </div>
-  <div class="tip">四步流程：<b>写脚本 → 拍摄 → 剪辑 → 发布</b>。点阶段圆圈<b>直接打勾完成</b>，再点一下取消；每个阶段会自动折算成工时，和学习任务一起排进「待办」页。</div>
+  <div class="tip">四步流程：<b>写脚本 → 拍摄 → 剪辑 → 发布</b>。点阶段圆圈<b>直接打勾完成</b>，再点一下取消；勾后面的阶段会自动把前面的环节一起勾上（能发布说明前面都做完了）；每个阶段会自动折算成工时，和学习任务一起排进「待办」页。</div>
   <div class="grid g2">
   ${ps.map(projectCard).join('')||'<div class="card empty" style="grid-column:1/-1">还没有工作项目，点右上角新增或导入 →</div>'}
   </div>
