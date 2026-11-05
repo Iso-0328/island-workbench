@@ -49,23 +49,18 @@ h2{font-size:17px;margin:24px 0 12px;display:flex;align-items:center;gap:8px;fon
 h2:first-child{margin-top:0}
 h2 .ic{width:19px;height:19px;color:var(--accent);flex:none}
 /* 玻璃质感卡片（2026-11-06，参考 React Bits MagicBento，配色保持淡粉）：
-   半透明磨砂底 + 内侧高光描边 + 鼠标聚光灯（--hot）+ 光标靠近时边缘流光（--near），
+   高透明磨砂底 + 内侧高光描边 + 光标靠近时边缘流光（--near），
    光标坐标由页面底部「卡片光效引擎」写入 --mx/--my */
 .card{
   position:relative;isolation:isolate;overflow:hidden;
-  background:linear-gradient(180deg,rgba(255,250,252,.84) 0%,rgba(255,231,242,.62) 100%);
-  backdrop-filter:blur(14px) saturate(160%);-webkit-backdrop-filter:blur(14px) saturate(160%);
-  border:1px solid rgba(255,255,255,.55);border-radius:var(--r);
-  box-shadow:0 18px 44px -22px rgba(214,110,160,.34),0 6px 18px -12px rgba(214,110,160,.18),
-    inset 0 0 0 1px rgba(255,255,255,.55),inset 0 1px 0 rgba(255,255,255,.9);
+  background:linear-gradient(180deg,rgba(255,252,254,.5) 0%,rgba(255,229,242,.34) 100%);
+  backdrop-filter:blur(16px) saturate(170%);-webkit-backdrop-filter:blur(16px) saturate(170%);
+  border:1px solid rgba(255,255,255,.5);border-radius:var(--r);
+  box-shadow:0 18px 44px -22px rgba(214,110,160,.3),0 6px 18px -12px rgba(214,110,160,.16),
+    inset 0 0 0 1px rgba(255,255,255,.5),inset 0 1px 0 rgba(255,255,255,.8);
   padding:18px 20px;
 }
 .card>*{position:relative;z-index:1}
-.card::before{  /* 聚光灯：跟随光标的柔光，悬停时亮起 */
-  content:'';position:absolute;inset:0;z-index:0;border-radius:inherit;pointer-events:none;
-  background:radial-gradient(260px circle at var(--mx,-999px) var(--my,-999px),rgba(232,121,166,.15),rgba(232,121,166,0) 72%);
-  opacity:var(--hot,0);transition:opacity .3s ease;
-}
 .card::after{   /* 边缘流光：光标靠近卡片边缘时描边亮起（mask 只留 1.5px 环） */
   content:'';position:absolute;inset:0;z-index:3;border-radius:inherit;pointer-events:none;
   background:radial-gradient(210px circle at var(--mx,-999px) var(--my,-999px),rgba(232,121,166,calc(.65*var(--near,0))),rgba(232,121,166,0) 70%);
@@ -3584,30 +3579,26 @@ const FX=(()=>{
 })();
 
 /* ================= 卡片光效引擎（MagicBento 原生简化版） =================
-   监听全局 pointermove，把光标坐标 / 悬停态 / 到各卡片的贴近度写进 .card 的 CSS 变量：
-   --mx/--my=卡内坐标，--hot=聚光灯开关，--near=边缘流光强度（0~1）。rAF 节流。 */
+   监听全局 pointermove，把光标坐标 / 到各卡片的贴近度写进 .card 的 CSS 变量：
+   --mx/--my=卡内坐标，--near=边缘流光强度（0~1）。rAF 节流。 */
 (function(){
   const EDGE=220;                       // 光标离卡片多近开始点亮描边
-  let raf=0,px=-99999,py=-99999,inside=false;
+  let raf=0,px=-99999,py=-99999;
   function frame(){
     raf=0;
     document.querySelectorAll('.card').forEach(c=>{
       const r=c.getBoundingClientRect();
       if(r.width<2)return;
-      const x=px-r.left,y=py-r.top;
-      const inCard=inside&&px>=r.left&&px<=r.right&&py>=r.top&&py<=r.bottom;
       const dx=Math.max(r.left-px,px-r.right,0),dy=Math.max(r.top-py,py-r.bottom,0);
       const near=Math.max(0,1-Math.hypot(dx,dy)/EDGE);
-      c.style.setProperty('--mx',x.toFixed(1)+'px');
-      c.style.setProperty('--my',y.toFixed(1)+'px');
-      c.style.setProperty('--hot',inCard?'1':'0');
+      c.style.setProperty('--mx',(px-r.left).toFixed(1)+'px');
+      c.style.setProperty('--my',(py-r.top).toFixed(1)+'px');
       c.style.setProperty('--near',near.toFixed(3));
     });
   }
   function wake(){if(!raf)raf=requestAnimationFrame(frame)}
-  document.addEventListener('pointermove',function(e){px=e.clientX;py=e.clientY;inside=true;wake()},{passive:true});
-  document.addEventListener('pointerdown',function(e){px=e.clientX;py=e.clientY;inside=true;wake()},{passive:true});
-  document.addEventListener('pointerout',function(e){if(!e.relatedTarget){inside=false;wake()}});
+  document.addEventListener('pointermove',function(e){px=e.clientX;py=e.clientY;wake()},{passive:true});
+  document.addEventListener('pointerdown',function(e){px=e.clientX;py=e.clientY;wake()},{passive:true});
   window.addEventListener('scroll',wake,{passive:true,capture:true});
   window.addEventListener('resize',wake,{passive:true});
 })();
