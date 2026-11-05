@@ -100,8 +100,40 @@ tr:hover td{background:#fef7fa}
 .modal h3 .ic{width:18px;height:18px;color:var(--accent)}
 .modal .row{display:flex;gap:12px}
 .modal .row>div{flex:1}
-/* 勾选框主题色：默认蓝太跳，统一成主题粉（2026-10-25） */
-input[type=checkbox]{accent-color:var(--accent)}
+/* 勾选框动效版（2026-11-06，参考 Uiverse MattiaCode-IT 的 task-checkbox，绿色全改主题粉）：
+   appearance:none 自绘方框——渐变填充弹入、白色对勾弹跳、勾选涟漪、按压缩小，全站勾选框统一生效 */
+input[type=checkbox]{
+  appearance:none;-webkit-appearance:none;
+  width:22px;height:22px;min-width:22px;min-height:22px;
+  margin:0;box-sizing:border-box;vertical-align:middle;flex:none;display:inline-block;
+  border:2px solid #f0bfd6;border-radius:6px;background:#fff;
+  position:relative;cursor:pointer;overflow:visible;
+  transition:border-color .3s cubic-bezier(.4,0,.2,1),background .3s ease,box-shadow .3s ease,transform .15s ease;
+}
+input[type=checkbox]::before{
+  content:'';position:absolute;top:0;left:0;width:100%;height:100%;border-radius:4px;
+  background:linear-gradient(135deg,#f9a8c9 0%,#e879a6 55%,#db5f92 100%);
+  transform:scale(0);opacity:0;
+  transition:all .4s cubic-bezier(.68,-.55,.265,1.55);
+}
+input[type=checkbox]::after{
+  content:'';position:absolute;left:50%;top:50%;width:12px;height:12px;z-index:2;
+  transform:translate(-50%,-50%) scale(.3) rotate(20deg);opacity:0;
+  background:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M4.5 12.5l5 5L19.5 7' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/></svg>") center/contain no-repeat;
+  filter:drop-shadow(0 1px 2px rgba(0,0,0,.2));
+  transition:all .5s cubic-bezier(.68,-.55,.265,1.55);
+}
+input[type=checkbox]:hover{border-color:#e879a6;box-shadow:0 0 0 3px rgba(232,121,166,.12)}
+input[type=checkbox]:active{transform:scale(.95)}
+input[type=checkbox]:checked{
+  border-color:#e879a6;
+  box-shadow:0 4px 12px rgba(232,121,166,.35),0 0 0 3px rgba(232,121,166,.15);
+  animation:cbRipple .6s ease-out;
+}
+input[type=checkbox]:checked::before{transform:scale(1);opacity:1}
+input[type=checkbox]:checked::after{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0deg);animation:cbCheckPop .3s ease-out .15s}
+@keyframes cbCheckPop{0%{transform:translate(-50%,-50%) scale(1) rotate(0deg)}50%{transform:translate(-50%,-50%) scale(1.2) rotate(-5deg)}100%{transform:translate(-50%,-50%) scale(1) rotate(0deg)}}
+@keyframes cbRipple{0%{box-shadow:0 0 0 0 rgba(232,121,166,.45)}70%{box-shadow:0 0 0 14px rgba(232,121,166,.15)}100%{box-shadow:0 0 0 20px rgba(232,121,166,0)}}
 .subtask{display:flex;align-items:center;gap:8px;padding:6px 0}
 .milestone{border-left:3px solid var(--accent);padding:10px 14px;background:linear-gradient(90deg,#fff2f8,#ffe9f3);border-radius:0 12px 12px 0;margin-bottom:10px;box-shadow:var(--neu-sm)}
 /* 总览统计图标块（参考渐变卡片排版） */
