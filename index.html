@@ -1657,8 +1657,7 @@ function projectCard(p){
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">
       <div style="min-width:0">
         <b style="font-size:15px">${esc(p.name)}</b>
-        <div class="muted">${esc(p.brand||'个人项目')} · ${esc(p.type||'其他')} · 交稿 ${fmtMD(p.deliverDate)} 周${wk(p.deliverDate)}
-          <b style="${d<0?'color:var(--danger)':d<=3?'color:var(--warn)':''}">${d<0?'已逾期 '+(-d)+' 天':d===0?'今天交稿':'还剩 '+d+' 天'}</b></div>
+        <div class="muted">${esc(p.brand||'个人项目')} · ${esc(p.type||'其他')} · 交稿 ${fmtMD(p.deliverDate)} 周${wk(p.deliverDate)}${pp<100?` <b style="${d<0?'color:var(--danger)':d<=3?'color:var(--warn)':''}">${d<0?'已逾期 '+(-d)+' 天':d===0?'今天交稿':'还剩 '+d+' 天'}</b>`:''}</div>
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
         <button class="btn ghost sm" onclick="incomeModal('${p.id}')"><i class="ic" data-ic="coin"></i> 记收入</button>
