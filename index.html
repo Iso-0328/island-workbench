@@ -867,6 +867,14 @@ function allPlanItems(){
   return items;
 }
 function itemByRef(ref){return allPlanItems().find(x=>x.ref===ref)}
+/* 总览「最近截止」右键编辑：按 ref 分发到对应弹窗（11-16 用户需求）
+   task:→任务编辑弹窗；stage:→跳工作页开项目编辑弹窗；rpt:→编辑重复任务母任务 */
+function editItemByRef(ref){
+  const seg=ref.split(':');
+  if(seg[0]==='task'){taskModal(seg[1]);return}
+  if(seg[0]==='stage'){go('work');projectModal(seg[1]);return}
+  if(seg[0]==='rpt'){taskModal(seg[1]);return}
+}
 /* 把某个条目的「未完成子任务」按天数摊到每一天：返回 { ds: [子任务...] }
    摊法：剩余子任务条数 ÷ 剩余可用天数，向上取整错开分配（保证总量守恒、越往后越少） */
 function splitSubs(it,start,endDs){
@@ -1024,10 +1032,10 @@ function renderDash(){
   </div>
   <div class="grid g2" style="margin-top:16px">
     <div class="card">
-      <h2><i class="ic" data-ic="star"></i> 最近截止（学习 + 工作）</h2>
+      <h2><i class="ic" data-ic="star"></i> 最近截止（学习 + 工作） <span class="muted" style="font-weight:400;font-size:11px">右键条目可编辑</span></h2>
       ${upcoming.length?upcoming.map(t=>{
         const d=daysBetween(td,t.dueDate);
-        return`<div class="task-row">
+        return`<div class="task-row" style="cursor:context-menu" oncontextmenu="event.preventDefault();editItemByRef('${t.ref}')" title="右键编辑此条目">
           <span class="prio-num ${d<=3?'late':d<=7?'near':''}" style="width:auto;padding:0 8px;font-size:12px">${d===0?'今天':d+'天'}</span>
           <div style="flex:1;min-width:0">
             <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><b>${esc(t.name)}</b>
