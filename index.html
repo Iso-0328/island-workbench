@@ -48,7 +48,27 @@ main{max-width:1180px;margin:0 auto;padding:24px 28px 80px}
 h2{font-size:17px;margin:24px 0 12px;display:flex;align-items:center;gap:8px;font-weight:700}
 h2:first-child{margin-top:0}
 h2 .ic{width:19px;height:19px;color:var(--accent);flex:none}
-.card{background:var(--panel);border:1px solid rgba(255,255,255,.75);border-radius:var(--r);box-shadow:var(--neu);padding:18px 20px}
+/* 玻璃质感卡片（2026-11-06，参考 React Bits MagicBento，配色保持淡粉）：
+   高透明磨砂底 + 内侧高光描边 + 光标靠近时边缘流光（--near），
+   光标坐标由页面底部「卡片光效引擎」写入 --mx/--my */
+.card{
+  position:relative;isolation:isolate;overflow:hidden;
+  background:linear-gradient(180deg,rgba(255,252,254,.28) 0%,rgba(255,229,242,.14) 100%);
+  backdrop-filter:blur(16px) saturate(170%);-webkit-backdrop-filter:blur(16px) saturate(170%);
+  border:1px solid rgba(255,255,255,.45);border-radius:var(--r);
+  box-shadow:0 18px 44px -22px rgba(214,110,160,.26),0 6px 18px -12px rgba(214,110,160,.14),
+    inset 0 0 0 1px rgba(255,255,255,.45),inset 0 1px 0 rgba(255,255,255,.75);
+  padding:18px 20px;
+}
+.card>*{position:relative;z-index:1}
+.card::after{   /* 边缘流光：光标靠近卡片边缘时描边亮起（mask 只留 1.5px 环） */
+  content:'';position:absolute;inset:0;z-index:3;border-radius:inherit;pointer-events:none;
+  background:radial-gradient(210px circle at var(--mx,-999px) var(--my,-999px),rgba(232,121,166,calc(.65*var(--near,0))),rgba(232,121,166,0) 70%);
+  padding:1.5px;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;
+  mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);
+}
 .grid{display:grid;gap:16px}
 .g4{grid-template-columns:repeat(4,1fr)}
 .g2{grid-template-columns:1fr 1fr}
@@ -135,6 +155,17 @@ input[type=checkbox]:checked::after{opacity:1;transform:translate(-50%,-50%) sca
 @keyframes cbCheckPop{0%{transform:translate(-50%,-50%) scale(1) rotate(0deg)}50%{transform:translate(-50%,-50%) scale(1.2) rotate(-5deg)}100%{transform:translate(-50%,-50%) scale(1) rotate(0deg)}}
 @keyframes cbRipple{0%{box-shadow:0 0 0 0 rgba(232,121,166,.45)}70%{box-shadow:0 0 0 14px rgba(232,121,166,.15)}100%{box-shadow:0 0 0 20px rgba(232,121,166,0)}}
 .subtask{display:flex;align-items:center;gap:8px;padding:6px 0}
+/* 材料面板（11-25） */
+.mat-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #fbeef4;animation:matIn .22s ease}
+@keyframes matIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.mat-item:last-child{border-bottom:none}
+.mat-thumb{width:52px;height:40px;object-fit:cover;border-radius:8px;cursor:zoom-in;border:1px solid var(--line);flex:none}
+.mat-badge{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;padding:0 4px;border-radius:999px;background:var(--accent);color:#fff;font-size:10px;font-weight:700;line-height:1}
+.btn .ic{width:15px;height:15px}
+#mat-viewer{position:fixed;inset:0;background:rgba(60,30,45,.72);display:flex;align-items:center;justify-content:center;z-index:999;cursor:zoom-out;animation:matIn .18s ease}
+#mat-viewer img{max-width:92vw;max-height:92vh;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.35)}
+.mat-add{border:1px dashed #f0bfd6;border-radius:12px;padding:12px;background:rgba(255,240,247,.55)}
+.mat-add.over{background:#ffe4f0;border-color:var(--accent)}
 .milestone{border-left:3px solid var(--accent);padding:10px 14px;background:linear-gradient(90deg,#fff2f8,#ffe9f3);border-radius:0 12px 12px 0;margin-bottom:10px;box-shadow:var(--neu-sm)}
 /* 总览统计图标块（参考渐变卡片排版） */
 .tile{width:46px;height:46px;border-radius:15px;background:linear-gradient(145deg,#f28ab4,#e0699c);display:flex;align-items:center;justify-content:center;color:#fff;flex:none;box-shadow:4px 4px 10px rgba(214,138,172,.32),-3px -3px 8px rgba(255,255,255,.9)}
@@ -308,7 +339,13 @@ const ICONS={
   target:__SVG('<circle cx="12" cy="12" r="8.3"/><circle cx="12" cy="12" r="4.2"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/>'),
   up:__SVG('<path d="M12 19.2V5.4"/><path d="M6.6 10.6 12 5.2l5.4 5.4"/>'),
   down:__SVG('<path d="M12 4.8v13.8"/><path d="M6.6 13.4 12 18.8l5.4-5.4"/>'),
-  plus:__SVG('<path d="M12 5.4v13.2M5.4 12h13.2"/>')
+  plus:__SVG('<path d="M12 5.4v13.2M5.4 12h13.2"/>'),
+  /* 材料面板（11-25）：回形针/链接/便签/文档 */
+  clip:__SVG('<path d="M16.6 6.8 8.9 14.5a2.6 2.6 0 0 0 3.7 3.7l7.4-7.4a4.4 4.4 0 0 0-6.2-6.2L6.3 12.1a6.2 6.2 0 0 0 8.8 8.8l6.4-6.4"/>'),
+  link:__SVG('<path d="M9.6 14.4 14.4 9.6"/><path d="M7.5 11.5 5.2 13.8a3.6 3.6 0 0 0 5 5l2.3-2.3"/><path d="M16.5 12.5l2.3-2.3a3.6 3.6 0 0 0-5-5L11.5 7.5"/>'),
+  note:__SVG('<path d="M5.5 5.6A2.1 2.1 0 0 1 7.6 3.5h8.8a2.1 2.1 0 0 1 2.1 2.1v9.6l-4.4 5.3H7.6a2.1 2.1 0 0 1-2.1-2.1Z"/><path d="M14 20.5v-4.4h4.5M8.6 8.4h6.8M8.6 11.8h5"/>'),
+  doc:__SVG('<path d="M6.5 3.5h7.5l4 4v13h-11.5Z"/><path d="M14 3.5V8h4.5M9 12.5h6M9 16h4"/>'),
+  tray:__SVG('<path d="M4.5 13.5h4.2l1.4 2.2h3.8l1.4-2.2h4.2"/><path d="M6.8 4.5h10.4a1.8 1.8 0 0 1 1.8 1.6l1 12a1.8 1.8 0 0 1-1.8 2H5.8a1.8 1.8 0 0 1-1.8-2l1-12a1.8 1.8 0 0 1 1.8-1.6Z"/>')
 };
 function hydrateIcons(root){
   if(!root&&typeof document==='undefined')return;
@@ -330,6 +367,10 @@ const WORK_STAGES=[
 ];
 const WORK_TYPES=['品牌广告','产品种草','探店笔记','Vlog','直播','图文笔记','其他'];
 const WORK_COLOR='#e879a6';
+
+/* 材料面板常量（11-25）：图片体积预算，防同步数据被塞爆（Gist 单文件约 1MB 截断线） */
+const MAT_IMG_MAX=150*1024;      // 单图 dataUrl 上限（压缩后仍超则拒收）
+const MAT_TOTAL_MAX=512*1024;    // 全部 img dataUrl 总量预算（全 S 范围）
 
 /* ================= 状态 ================= */
 const KEY='semester-workbench-v1';
@@ -739,6 +780,12 @@ async function init(){
     if(!Array.isArray(t.subtasks))t.subtasks=[];
     t.subtasks.forEach(s=>{if(!s.id)s.id=uid()});
   });
+  // 材料面板（11-25）：任务/项目补 materials 数组 + 坏条目清洗
+  S.tasks.forEach(t=>{if(!Array.isArray(t.materials))t.materials=[]});
+  (S.projects||[]).forEach(p=>{if(!Array.isArray(p.materials))p.materials=[]});
+  [S.tasks,S.projects||[]].forEach(arr=>arr.forEach(o=>(o.materials||[]).forEach(m=>{
+    if(m.kind==='img'&&typeof m.dataUrl!=='string')m.dataUrl='';
+  })));
   if(!S.dismissed||typeof S.dismissed!=='object')S.dismissed={};
   if(!S.settings||typeof S.settings.workPerDay!=='number')S.settings=Object.assign(defaultState().settings,S.settings||{});
   if(!S.settings.ai)S.settings.ai=defaultState().settings.ai;
@@ -847,6 +894,14 @@ function allPlanItems(){
   return items;
 }
 function itemByRef(ref){return allPlanItems().find(x=>x.ref===ref)}
+/* 总览「最近截止」右键编辑：按 ref 分发到对应弹窗（11-16 用户需求）
+   task:→任务编辑弹窗；stage:→跳工作页开项目编辑弹窗；rpt:→编辑重复任务母任务 */
+function editItemByRef(ref){
+  const seg=ref.split(':');
+  if(seg[0]==='task'){taskModal(seg[1]);return}
+  if(seg[0]==='stage'){go('work');projectModal(seg[1]);return}
+  if(seg[0]==='rpt'){taskModal(seg[1]);return}
+}
 /* 把某个条目的「未完成子任务」按天数摊到每一天：返回 { ds: [子任务...] }
    摊法：剩余子任务条数 ÷ 剩余可用天数，向上取整错开分配（保证总量守恒、越往后越少） */
 function splitSubs(it,start,endDs){
@@ -1004,10 +1059,10 @@ function renderDash(){
   </div>
   <div class="grid g2" style="margin-top:16px">
     <div class="card">
-      <h2><i class="ic" data-ic="star"></i> 最近截止（学习 + 工作）</h2>
+      <h2><i class="ic" data-ic="star"></i> 最近截止（学习 + 工作） <span class="muted" style="font-weight:400;font-size:11px">右键条目可编辑</span></h2>
       ${upcoming.length?upcoming.map(t=>{
         const d=daysBetween(td,t.dueDate);
-        return`<div class="task-row">
+        return`<div class="task-row" style="cursor:context-menu" oncontextmenu="event.preventDefault();editItemByRef('${t.ref}')" title="右键编辑此条目">
           <span class="prio-num ${d<=3?'late':d<=7?'near':''}" style="width:auto;padding:0 8px;font-size:12px">${d===0?'今天':d+'天'}</span>
           <div style="flex:1;min-width:0">
             <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><b>${esc(t.name)}</b>
@@ -1015,6 +1070,7 @@ function renderDash(){
             <div class="muted">${esc(t.sub)} · 截止 ${fmtMD(t.dueDate)} 周${wk(t.dueDate)} · 约 ${t.estHours}h</div>
             <div style="display:flex;align-items:center;gap:8px;margin-top:4px"><div class="bar-mini"><i style="width:${t.progress}%;background:${t.color}"></i></div><span class="muted">${t.progress}%</span></div>
           </div>
+          ${t.kind==='study'?matBtnBtn('task',t.id):''}
           <button class="chk ${t.done?'on':''}" onclick="toggleRef('${t.ref}')">${t.done?'✓':''}</button>
         </div>`}).join(''):`<div class="empty">暂无未完成条目，太棒了 <i class="ic" data-ic="sparkle"></i></div>`}
     </div>
@@ -1109,6 +1165,7 @@ function taskRowHTML(t,inCourse){
       <div style="display:flex;align-items:center;gap:8px;margin-top:4px"><div class="bar-mini"><i style="width:${p}%;background:${courseColor(t.courseId)}"></i></div><span class="muted">${p}%${t.subtasks&&t.subtasks.length?` · 子任务 ${t.subtasks.filter(s=>s.done).length}/${t.subtasks.length}`:''}</span></div>
     </div>
     ${inCourse?`<button class="btn danger sm" onclick="delTask('${t.id}');event.stopPropagation()">删</button>`:''}
+    ${matCount('task',t.id)?matBtnBtn('task',t.id):''}
   </div>`;
 }
 /* 通用条目行（学习 + 工作统一展示） */
@@ -1124,6 +1181,7 @@ function planRowHTML(it){
       <div class="muted">${esc(it.sub)} · 截止 ${fmtMD(it.dueDate)} 周${wk(it.dueDate)}${late?' · 已逾期':' · 还有 '+d+' 天'} · 约 ${it.estHours}h</div>
       <div style="display:flex;align-items:center;gap:8px;margin-top:4px"><div class="bar-mini"><i style="width:${it.progress}%;background:${it.color}"></i></div><span class="muted">${it.progress}%</span></div>
     </div>
+    ${it.rpt?'':(it.kind==='work'?(matCount('proj',it.pid)?matBtnBtn('proj',it.pid):''):(matCount('task',it.id)?matBtnBtn('task',it.id):''))}
   </div>`;
 }
 function toggleRef(ref){
@@ -1153,7 +1211,7 @@ function renderPlan(){
       return`<tr style="cursor:pointer" onclick="taskModal('${t.id}')">
       <td onclick="event.stopPropagation()"><input type="checkbox" style="width:auto" ${t.done?'checked':''} onchange="toggleTask('${t.id}')" title="标记完成/未完成"></td>
       <td><span class="prio-num ${late?'late':(!t.done&&d<=7)?'near':''}">${i+1}</span></td>
-      <td><b ${late?'style="color:var(--danger)"':t.done?'style="text-decoration:line-through;color:var(--ink2)"':''}>${esc(t.name)}</b>${isRepeatTask(t)?` <span class="tag pink">每周${WEEKDAY_NAMES[t.repeat.weekday].slice(1)}</span>`:''}${t.done?' <span class="tag green">已完成</span>':''}</td>
+      <td><b ${late?'style="color:var(--danger)"':t.done?'style="text-decoration:line-through;color:var(--ink2)"':''}>${esc(t.name)}</b>${isRepeatTask(t)?` <span class="tag pink">每周${WEEKDAY_NAMES[t.repeat.weekday].slice(1)}</span>`:''}${t.done?' <span class="tag green">已完成</span>':''}${matCount('task',t.id)?` <button class="btn ghost sm" style="margin-left:4px" onclick="openMaterials('task','${t.id}');event.stopPropagation()" title="材料面板"><i class="ic" data-ic="clip"></i><span class="mat-badge">${matCount('task',t.id)}</span></button>`:''}</td>
       <td><span class="tag gray" style="color:${courseColor(t.courseId)}">${esc(courseName(t.courseId))}</span></td>
       <td><span class="tag ${TYPE_COLOR[t.type]||'gray'}">${t.type||'-'}</span>${t.weight?` ${t.weight}%`:''}</td>
       <td>${isRepeatTask(t)?`每周${WEEKDAY_NAMES[t.repeat.weekday].slice(1)} · 到 ${fmtMD(t.dueDate)}`:`${fmtMD(t.dueDate)} 周${wk(t.dueDate)}`}</td>
@@ -1629,10 +1687,10 @@ function projectCard(p){
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">
       <div style="min-width:0">
         <b style="font-size:15px">${esc(p.name)}</b>
-        <div class="muted">${esc(p.brand||'个人项目')} · ${esc(p.type||'其他')} · 交稿 ${fmtMD(p.deliverDate)} 周${wk(p.deliverDate)}
-          <b style="${d<0?'color:var(--danger)':d<=3?'color:var(--warn)':''}">${d<0?'已逾期 '+(-d)+' 天':d===0?'今天交稿':'还剩 '+d+' 天'}</b></div>
+        <div class="muted">${esc(p.brand||'个人项目')} · ${esc(p.type||'其他')} · 交稿 ${fmtMD(p.deliverDate)} 周${wk(p.deliverDate)}${pp<100?` <b style="${d<0?'color:var(--danger)':d<=3?'color:var(--warn)':''}">${d<0?'已逾期 '+(-d)+' 天':d===0?'今天交稿':'还剩 '+d+' 天'}</b>`:''}</div>
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
+        ${matBtnBtn('proj',p.id)}
         <button class="btn ghost sm" onclick="incomeModal('${p.id}')"><i class="ic" data-ic="coin"></i> 记收入</button>
         <button class="btn ghost sm" onclick="projectModal('${p.id}')">编辑</button>
         <button class="btn danger sm" onclick="delProject('${p.id}')">删除</button>
@@ -1691,6 +1749,7 @@ function projectModal(id){
     <div><input type="date" id="w-due-${s.key}" value="${st.due||''}"></div>
   </div>`}).join('')}
   <label>备注 / 客户要求</label><textarea id="w-notes" rows="2">${esc(cur.notes||'')}</textarea>
+  ${cur.id?`<div style="margin-top:10px">${matBtnBtn('proj',cur.id)}</div>`:''}
   <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end">
     ${p?`<button class="btn ghost" onclick="replanStages('${p.id}')">按日期重排阶段</button>`:''}
     <button class="btn ghost" onclick="closeModal()">取消</button>
@@ -1735,6 +1794,213 @@ function saveProject(id){
 }
 function delProject(id){
   if(confirm('删除该项目？关联的收入记录会保留（可手动清理）。')){S.projects=S.projects.filter(p=>p.id!==id);save();render()}
+}
+
+/* ================= 材料面板（11-25） =================
+   给任务 / 工作项目挂四类材料：便签(note)、链接(link)、截图(img, 压缩后随同步走)、文件登记(file, 原件在电脑 materials/)。
+   体积防线：单图 ≤MAT_IMG_MAX、全部图 ≤MAT_TOTAL_MAX，防同步包被塞爆。 */
+let MAT_OPEN=null;   // {kind:'task'|'proj', id}
+function matOwner(kind,id){
+  const o=(kind==='task'?S.tasks:S.projects||[]).find(x=>x.id===id);
+  if(o&&!Array.isArray(o.materials))o.materials=[];
+  return o;
+}
+function matCount(kind,id){
+  const o=(kind==='task'?S.tasks:(S.projects||[])).find(x=>x.id===id);
+  return o&&Array.isArray(o.materials)?o.materials.length:0;
+}
+/* 带计数徽标的回形针按钮（入口复用件；stopPropagation 防触发行点击/编辑） */
+function matBtnBtn(ownerKind,ownerId){
+  const n=matCount(ownerKind,ownerId);
+  return`<button class="btn ghost sm" style="flex:none" onclick="openMaterials('${ownerKind}','${ownerId}');event.stopPropagation()"
+    title="材料面板（便签/链接/截图/文件）"><i class="ic" data-ic="clip"></i>${n?`<span class="mat-badge">${n}</span>`:'材料'}</button>`;
+}
+function matTotalBytes(){
+  let n=0;
+  S.tasks.forEach(t=>(t.materials||[]).forEach(m=>{if(m.kind==='img')n+=(m.dataUrl||'').length}));
+  (S.projects||[]).forEach(p=>(p.materials||[]).forEach(m=>{if(m.kind==='img')n+=(m.dataUrl||'').length}));
+  return n;
+}
+/* 压缩图片：最长边 1280px JPEG 0.72，超预算降 0.55 重试一次。__matCompressStub 供自检注入 */
+window.__matCompressStub=null;
+async function matCompress(file){
+  if(window.__matCompressStub)return window.__matCompressStub(file);
+  const dataUrl=await new Promise((res,rej)=>{const fr=new FileReader();
+    fr.onload=()=>res(fr.result);fr.onerror=()=>rej(new Error('读取失败'));fr.readAsDataURL(file)});
+  const cv=document.createElement('canvas');
+  if(!cv.getContext)return dataUrl;         // 无 canvas 环境（jsdom）原样返回
+  const img=await new Promise((res,rej)=>{const im=new Image();im.onload=()=>res(im);im.onerror=()=>rej(new Error('解码失败'));im.src=dataUrl});
+  const MAX=1280;let w=img.width,h=img.height;
+  if(Math.max(w,h)>MAX){const k=MAX/Math.max(w,h);w=Math.round(w*k);h=Math.round(h*k)}
+  cv.width=w;cv.height=h;cv.getContext('2d').drawImage(img,0,0,w,h);
+  let out=cv.toDataURL('image/jpeg',0.72);
+  if(out.length>MAT_IMG_MAX)out=cv.toDataURL('image/jpeg',0.55);
+  return out;
+}
+async function matAddImages(files){
+  const owner=matOwner(MAT_OPEN.kind,MAT_OPEN.id);if(!owner)return;
+  for(const f of [...files]){
+    let url;
+    try{url=await matCompress(f)}catch(e){matNote('这张图读取失败：'+e.message,'bad');continue}
+    if(!url||url.length>MAT_IMG_MAX){matNote('「'+(f.name||'截图')+'」压缩后仍超 '+(MAT_IMG_MAX/1024)+'KB，已跳过','bad');continue}
+    if(matTotalBytes()+url.length>MAT_TOTAL_MAX){
+      matNote('图片总容量超预算（'+(MAT_TOTAL_MAX/1024)+'KB），请先删旧图或改用「传文件」登记','bad');return}
+    owner.materials.push({id:uid(),kind:'img',title:f.name||('截图 '+(owner.materials.length+1)),dataUrl:url,createdAt:Date.now()});
+    save();matRenderList();
+  }
+  if(typeof render==='function')render();
+}
+/* 面板内 Ctrl+V：粘贴截图→存图；粘贴纯文字→存便签 */
+function matPaste(e){
+  const dt=e.clipboardData;if(!dt)return;
+  const items=dt.items?[...dt.items]:[];
+  const files=items.filter(it=>it.kind==='file'&&/^image\//.test(it.type||'')).map(it=>it.getAsFile()).filter(Boolean);
+  if(files.length){e.preventDefault();e.stopPropagation();matAddImages(files)}
+  else{const txt=dt.getData&&dt.getData('text/plain');
+    if(txt&&txt.trim()){e.preventDefault();matQuickNote(txt.trim())}}
+}
+function matQuickNote(text){
+  const owner=matOwner(MAT_OPEN.kind,MAT_OPEN.id);if(!owner)return;
+  owner.materials.push({id:uid(),kind:'note',title:'',text:text,createdAt:Date.now()});
+  save();matRenderList();if(typeof render==='function')render();
+}
+/* 文档原件上传（仅 server 模式）：XHR 以支持进度提示 */
+function matUploadFile(file){
+  const owner=matOwner(MAT_OPEN.kind,MAT_OPEN.id);if(!owner||!file)return;
+  if(MODE!=='server'){matNote('上传原件需要电脑端数据服务（server 模式）','bad');return}
+  matNote('上传中…');
+  const xhr=new XMLHttpRequest();
+  xhr.open('POST','/api/files?name='+encodeURIComponent(file.name));
+  xhr.onload=()=>{
+    if(xhr.status!==200){matNote('上传失败：'+((xhr.responseText||'').slice(0,120)||xhr.status),'bad');return}
+    let r;try{r=JSON.parse(xhr.responseText)}catch(e){matNote('上传失败：响应异常','bad');return}
+    owner.materials.push({id:uid(),kind:'file',title:file.name,fileName:r.fileName,size:r.size,createdAt:Date.now()});
+    save();matRenderList();if(typeof render==='function')render();
+    matNote('已登记 ✓ 原件存放在电脑 E:\\个人学习工作台\\materials\\');
+  };
+  xhr.onerror=()=>matNote('上传失败：连不上电脑服务','bad');
+  xhr.send(file);
+}
+function matNote(msg,cls){const el=$('#mat-note');if(el){el.textContent=msg;el.style.color=cls==='bad'?'var(--danger)':'var(--ink2)'}}
+function matOpenFileById(id){
+  const o=matOwner(MAT_OPEN.kind,MAT_OPEN.id);if(!o)return;
+  const m=o.materials.find(x=>x.id===id);if(!m)return;
+  if(MODE==='server'){window.open('/files/'+encodeURIComponent(m.fileName),'_blank');return}
+  const hint='文件原件在你电脑的 E:\\个人学习工作台\\materials\\ 里，需电脑开机且这台设备连同一 Wi-Fi 才能打开。';
+  if(confirm(hint+'\n\n要复制文件名「'+m.title+'」吗？')){try{navigator.clipboard.writeText(m.title)}catch(e){}}
+}
+function openMaterials(ownerKind,ownerId){
+  const o=matOwner(ownerKind,ownerId);if(!o)return;
+  MAT_OPEN={kind:ownerKind,id:ownerId};
+  const isServer=MODE==='server';
+  openModal(`<h3><i class="ic" data-ic="clip"></i> 材料 · ${esc(o.name)} <span class="muted">${o.materials.length} 项</span></h3>
+  <div class="mat-add" id="mat-drop" tabindex="0">
+    <i class="ic" data-ic="image"></i> 按 <b>Ctrl + V</b> 粘贴截图或文字（拖文件到这里也行）
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+      <label class="btn ghost sm" style="cursor:pointer;margin:0"><i class="ic" data-ic="image"></i> 选图片
+        <input type="file" accept="image/*" multiple style="display:none" onchange="matAddImages(this.files);this.value=''"></label>
+      <button class="btn ghost sm" onclick="matLinkModal()"><i class="ic" data-ic="link"></i> 贴链接</button>
+      <button class="btn ghost sm" onclick="matNoteModal()"><i class="ic" data-ic="note"></i> 写便签</button>
+      <label class="btn ghost sm" style="cursor:pointer;margin:0;${isServer?'':'opacity:.45'}" ${isServer?'':'title="上传原件需要电脑端服务"'}><i class="ic" data-ic="tray"></i> 传文件
+        <input type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.md,.csv,.xlsx" style="display:none" ${isServer?'':'disabled'} onchange="matUploadFile(this.files[0]);this.value=''"></label>
+    </div>
+    <div class="muted" id="mat-note" style="margin-top:6px"></div>
+  </div>
+  <div id="mat-list" style="margin-top:10px"></div>
+  <div style="display:flex;justify-content:flex-end;margin-top:14px"><button class="btn ghost" onclick="closeModal()">关闭</button></div>`);
+  const dz=$('#mat-drop');
+  dz.addEventListener('paste',matPaste,true);
+  dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('over')});
+  dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
+  dz.addEventListener('drop',e=>{
+    e.preventDefault();dz.classList.remove('over');
+    const fs=e.dataTransfer&&e.dataTransfer.files;if(!fs||!fs.length)return;
+    const imgs=[...fs].filter(f=>/^image\//.test(f.type));
+    const docs=[...fs].filter(f=>!/^image\//.test(f.type));
+    if(imgs.length)matAddImages(imgs);
+    if(docs.length){if(MODE==='server')docs.forEach(matUploadFile);else matNote('原件上传需要电脑端服务（当前 '+MODE+' 模式），可先截图贴入','bad')}
+  });
+  matRenderList();
+  setTimeout(()=>{try{$('#mat-drop').focus()}catch(e){}},60);   // 聚焦粘贴区，Ctrl+V 直接可用
+}
+function matRenderList(){
+  const o=matOwner(MAT_OPEN.kind,MAT_OPEN.id);const box=$('#mat-list');if(!o||!box)return;
+  box.innerHTML=o.materials.length?o.materials.map(m=>{
+    if(m.kind==='img')return`<div class="mat-item"><i class="ic" data-ic="image"></i>
+      <img class="mat-thumb" src="${m.dataUrl}" onclick="matViewImg('${m.id}')" alt="">
+      <div style="flex:1;min-width:0"><div>${esc(m.title)}</div><div class="muted">约 ${Math.round((m.dataUrl||'').length/1024)}KB · 点图放大</div></div>
+      ${matDelBtn(m.id)}</div>`;
+    if(m.kind==='link')return`<div class="mat-item"><i class="ic" data-ic="link"></i>
+      <div style="flex:1;min-width:0"><a href="${esc(m.url)}" target="_blank" rel="noopener" style="color:var(--accent-deep)">${esc(m.title||m.url)}</a>
+      <div class="muted" style="word-break:break-all">${esc(m.url)}</div></div>
+      <button class="btn ghost sm" onclick="matEditLink('${m.id}')">改名</button>${matDelBtn(m.id)}</div>`;
+    if(m.kind==='note')return`<div class="mat-item"><i class="ic" data-ic="note"></i>
+      <div style="flex:1;min-width:0">${m.title?`<div>${esc(m.title)}</div>`:''}<div class="muted" style="white-space:pre-wrap">${esc(m.text||'')}</div></div>
+      ${matDelBtn(m.id)}</div>`;
+    return`<div class="mat-item"><i class="ic" data-ic="tray"></i>
+      <div style="flex:1;min-width:0"><div>${esc(m.title)}</div><div class="muted">${Math.round((m.size||0)/1024)}KB${MODE==='server'?'':' · 原件在电脑上'}</div></div>
+      ${MODE==='server'?`<button class="btn ghost sm" onclick="matOpenFileById('${m.id}')">打开</button>`:''}${matDelBtn(m.id)}</div>`;
+  }).join(''):'<div class="empty">还没有材料。粘贴截图、贴链接或写条便签。</div>';
+}
+function matDelBtn(id){return`<button class="btn danger sm" onclick="matDel('${id}')">删除</button>`}
+function matDel(id){
+  const o=matOwner(MAT_OPEN.kind,MAT_OPEN.id);if(!o)return;
+  const m=o.materials.find(x=>x.id===id);if(!m)return;
+  if(!confirm('删除这条材料「'+(m.title||'未命名')+'」？'+(m.kind==='file'?'（只删登记，电脑里的原件不删）':'（不可恢复）')))return;
+  o.materials=o.materials.filter(x=>x.id!==id);save();matRenderList();render();
+}
+function matViewImg(id){
+  const o=matOwner(MAT_OPEN.kind,MAT_OPEN.id);if(!o)return;
+  const m=o.materials.find(x=>x.id===id);if(!m)return;
+  const v=document.createElement('div');v.id='mat-viewer';v.innerHTML=`<img src="${m.dataUrl}" alt="">`;
+  v.onclick=()=>v.remove();document.body.appendChild(v);
+}
+function matLinkModal(){
+  openModal(`<h3><i class="ic" data-ic="link"></i> 贴链接</h3>
+  <label>链接地址</label><input id="mat-url" placeholder="https://…（路线/文档/表单）">
+  <label>名称（可留空）</label><input id="mat-linktitle" placeholder="如：实践路线">
+  <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px">
+    <button class="btn ghost" onclick="openMaterials(MAT_OPEN.kind,MAT_OPEN.id)">取消</button>
+    <button class="btn" onclick="matSaveLink()">保存</button></div>`);
+  setTimeout(()=>{try{$('#mat-url').focus()}catch(e){}},60);
+}
+function matSaveLink(){
+  const owner=matOwner(MAT_OPEN.kind,MAT_OPEN.id);if(!owner)return;
+  const url=($('#mat-url').value||'').trim();
+  if(!url){alert('请填写链接地址');return}
+  owner.materials.push({id:uid(),kind:'link',title:($('#mat-linktitle').value||'').trim(),url:url,createdAt:Date.now()});
+  save();openMaterials(MAT_OPEN.kind,MAT_OPEN.id);
+}
+function matEditLink(id){
+  const o=matOwner(MAT_OPEN.kind,MAT_OPEN.id);if(!o)return;
+  const m=o.materials.find(x=>x.id===id);if(!m)return;
+  openModal(`<h3><i class="ic" data-ic="link"></i> 修改链接名称</h3>
+  <label>名称</label><input id="mat-linktitle" value="${esc(m.title||'')}">
+  <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px">
+    <button class="btn ghost" onclick="openMaterials(MAT_OPEN.kind,MAT_OPEN.id)">取消</button>
+    <button class="btn" onclick="matSaveLinkName('${m.id}')">保存</button></div>`);
+}
+function matSaveLinkName(id){
+  const o=matOwner(MAT_OPEN.kind,MAT_OPEN.id);if(!o)return;
+  const m=o.materials.find(x=>x.id===id);if(!m)return;
+  m.title=($('#mat-linktitle').value||'').trim();
+  save();openMaterials(MAT_OPEN.kind,MAT_OPEN.id);
+}
+function matNoteModal(){
+  openModal(`<h3><i class="ic" data-ic="note"></i> 写便签</h3>
+  <label>标题（可留空）</label><input id="mat-notetitle" placeholder="如：集合地点">
+  <label>内容</label><textarea id="mat-notetext" rows="4" style="width:100%;font:inherit;color:var(--ink);background:#fff3f8;border:1px solid #f9e2ec;border-radius:12px;padding:8px 12px;outline:none"></textarea>
+  <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px">
+    <button class="btn ghost" onclick="openMaterials(MAT_OPEN.kind,MAT_OPEN.id)">取消</button>
+    <button class="btn" onclick="matSaveNote()">保存</button></div>`);
+  setTimeout(()=>{try{$('#mat-notetext').focus()}catch(e){}},60);
+}
+function matSaveNote(){
+  const owner=matOwner(MAT_OPEN.kind,MAT_OPEN.id);if(!owner)return;
+  const text=($('#mat-notetext').value||'').trim();
+  if(!text){alert('请填写便签内容');return}
+  owner.materials.push({id:uid(),kind:'note',title:($('#mat-notetitle').value||'').trim(),text:text,createdAt:Date.now()});
+  save();openMaterials(MAT_OPEN.kind,MAT_OPEN.id);
 }
 /* ---- 工作项目导入：本地规则识别 / AI 解析 / JSON ---- */
 function normDate(s){
@@ -2301,6 +2567,7 @@ function taskModal(id,presetCourse){
     <input type="checkbox" style="width:auto" value="${x.id}" ${t&&(t.dependencies||[]).includes(x.id)?'checked':''} onchange="void 0"> ${esc(x.name)} <span class="muted">（${esc(courseName(x.courseId))} · ${fmtMD(x.dueDate)}）</span></label>`).join('')||'<span class="muted">暂无其他任务</span>'}
   </div>
   <label>备注 / 硬性要求</label><textarea id="t-notes" rows="2">${esc(t?t.notes:'')}</textarea>
+  ${t?`<div style="margin-top:10px">${matBtnBtn('task',t.id)}</div>`:''}
   <div class="muted" style="margin:14px 0 6px;font-size:12px">—— 老师更新了任务要求？直接打字 / 粘贴截图 / 上传文件，让 AI 改填上面的表单（确认无误后仍要点「保存」）——</div>
   <div class="drop-paste" id="tk-drop" tabindex="0">
     <i class="ic" data-ic="image"></i> 点这里按 <b>Ctrl + V</b> 粘贴图片，或把文件拖进来<br>
@@ -3556,6 +3823,31 @@ const FX=(()=>{
     get busy(){return inRender},
     get reduce(){return reduce}
   };
+})();
+
+/* ================= 卡片光效引擎（MagicBento 原生简化版） =================
+   监听全局 pointermove，把光标坐标 / 到各卡片的贴近度写进 .card 的 CSS 变量：
+   --mx/--my=卡内坐标，--near=边缘流光强度（0~1）。rAF 节流。 */
+(function(){
+  const EDGE=220;                       // 光标离卡片多近开始点亮描边
+  let raf=0,px=-99999,py=-99999;
+  function frame(){
+    raf=0;
+    document.querySelectorAll('.card').forEach(c=>{
+      const r=c.getBoundingClientRect();
+      if(r.width<2)return;
+      const dx=Math.max(r.left-px,px-r.right,0),dy=Math.max(r.top-py,py-r.bottom,0);
+      const near=Math.max(0,1-Math.hypot(dx,dy)/EDGE);
+      c.style.setProperty('--mx',(px-r.left).toFixed(1)+'px');
+      c.style.setProperty('--my',(py-r.top).toFixed(1)+'px');
+      c.style.setProperty('--near',near.toFixed(3));
+    });
+  }
+  function wake(){if(!raf)raf=requestAnimationFrame(frame)}
+  document.addEventListener('pointermove',function(e){px=e.clientX;py=e.clientY;wake()},{passive:true});
+  document.addEventListener('pointerdown',function(e){px=e.clientX;py=e.clientY;wake()},{passive:true});
+  window.addEventListener('scroll',wake,{passive:true,capture:true});
+  window.addEventListener('resize',wake,{passive:true});
 })();
 
 /* ================= 启动 ================= */
