@@ -2561,12 +2561,6 @@ function taskModal(id,presetCourse){
   <label>子任务 / 具体步骤（每行一个）</label>
   <div class="muted" style="margin:-2px 0 5px;font-size:12px">这些会按截止日期自动摊到每天的待办里，勾掉一条子任务，任务进度就往前走一格。<b>尽量写成能动手做的具体动作</b>，别写任务标题的另一种说法。</div>
   <textarea id="t-subs" rows="4" placeholder="例如：&#10;复习第 1-3 章并整理公式卡&#10;做历年真题 2020-2023 共 4 套&#10;把错题抄进错题本">${t&&t.subtasks?esc(t.subtasks.map(s=>s.name).join('\n')):''}</textarea>
-  <label>前置任务（需先完成，可选多个）</label>
-  <div style="max-height:110px;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:6px 10px">
-  ${S.tasks.filter(x=>!t||x.id!==t.id).map(x=>`<label style="display:flex;align-items:center;gap:6px;margin:3px 0;color:var(--ink);font-size:13px">
-    <input type="checkbox" style="width:auto" value="${x.id}" ${t&&(t.dependencies||[]).includes(x.id)?'checked':''} onchange="void 0"> ${esc(x.name)} <span class="muted">（${esc(courseName(x.courseId))} · ${fmtMD(x.dueDate)}）</span></label>`).join('')||'<span class="muted">暂无其他任务</span>'}
-  </div>
-  <label>备注 / 硬性要求</label><textarea id="t-notes" rows="2">${esc(t?t.notes:'')}</textarea>
   ${t?`<div style="margin-top:10px">${matBtnBtn('task',t.id)}</div>`:''}
   <div class="muted" style="margin:14px 0 6px;font-size:12px">—— 老师更新了任务要求？直接打字 / 粘贴截图 / 上传文件，让 AI 改填上面的表单（确认无误后仍要点「保存」）——</div>
   <div class="drop-paste" id="tk-drop" tabindex="0">
@@ -2605,12 +2599,12 @@ function taskModal(id,presetCourse){
 }
 function saveTask(id){
   const name=$('#t-name').value.trim();if(!name){alert('请填写任务名称');return}
-  const deps=[...document.querySelectorAll('#modal-root input[type=checkbox]:checked')].map(x=>x.value);
+  const old=id?S.tasks.find(x=>x.id===id):null;
   const subs=$('#t-subs').value.split('\n').map(s=>s.trim()).filter(Boolean);
   const rfreq=$('#t-repeat')?$('#t-repeat').value:'';
   const data={courseId:$('#t-course').value,name,type:$('#t-type').value,weight:+$('#t-weight').value||0,
     dueDate:$('#t-due').value||S.semester.end,estHours:+$('#t-est').value||4,startDate:$('#t-start').value,
-    notes:$('#t-notes').value.trim(),dependencies:deps,
+    notes:old?(old.notes||''):'',dependencies:old?(old.dependencies||[]):[],
     repeat:rfreq?{freq:rfreq,weekday:+$('#t-wd').value}:null,
     subtasks:subs.map(nm=>{
       const old=id&&S.tasks.find(x=>x.id===id)?S.tasks.find(x=>x.id===id).subtasks.find(s=>s.name===nm):null;
@@ -2887,7 +2881,6 @@ function tkShowParsed(obj){
   if(o.weight!=null&&!isNaN(+o.weight))put('weight','考核占比 %',+o.weight,t.weight||0);
   if(o.dueDate&&/^\d{4}-\d{2}-\d{2}$/.test(o.dueDate))put('dueDate','截止日期',o.dueDate,t.dueDate);
   if(o.estHours!=null&&!isNaN(+o.estHours)&&+o.estHours>0)put('estHours','预计工时（小时）',+o.estHours,t.estHours||4);
-  if(o.notes)put('notes','备注/硬性要求',o.notes,t.notes);
   if(Array.isArray(o.subtasks)&&o.subtasks.length){
     const subs=o.subtasks.map(x=>String(typeof x==='string'?x:(x&&x.name)||'').trim()).filter(Boolean).slice(0,20);
     if(subs.length)ch.push({k:'subtasks',label:'子任务（整体替换，每行一个）',val:subs.join('\n'),old:(t.subtasks&&t.subtasks.length)?t.subtasks.map(s=>s.name).join('\n'):''});
@@ -2916,7 +2909,6 @@ function tkApplyParsed(){
     else if(item.k==='weight')$('#t-weight').value=item.val;
     else if(item.k==='dueDate')$('#t-due').value=item.val;
     else if(item.k==='estHours')$('#t-est').value=item.val;
-    else if(item.k==='notes')$('#t-notes').value=item.val;
     else if(item.k==='subtasks')$('#t-subs').value=item.val;
   });
   window.__tkParsed=null;const r=$('#tk-result');if(r)r.innerHTML='';
